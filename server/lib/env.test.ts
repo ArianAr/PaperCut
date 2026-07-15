@@ -82,12 +82,14 @@ describe("env helpers", () => {
     expect(isWeakPasteAuthSecret("prod-secret-long-enough")).toBe(false);
   });
 
-  it("defaults trusted proxy hops to 1", () => {
+  it("defaults trusted proxy hops to 0 (ignore XFF)", () => {
     remember();
     delete process.env.TRUSTED_PROXY_HOPS;
-    expect(getTrustedProxyHops()).toBe(1);
+    expect(getTrustedProxyHops()).toBe(0);
     process.env.TRUSTED_PROXY_HOPS = "2";
     expect(getTrustedProxyHops()).toBe(2);
+    process.env.TRUSTED_PROXY_HOPS = "1";
+    expect(getTrustedProxyHops()).toBe(1);
     process.env.TRUSTED_PROXY_HOPS = "0";
     expect(getTrustedProxyHops()).toBe(0);
   });

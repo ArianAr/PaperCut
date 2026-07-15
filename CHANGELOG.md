@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Security:** production rejects empty/known-placeholder/`<16` char `PASTE_AUTH_SECRET`; Compose no longer ships a working default secret
+- **Security:** default `TRUSTED_PROXY_HOPS=0` (ignore spoofable XFF on direct deploys); in-memory rate limiters prune/evict keys; set hops `1` behind a reverse proxy
 - Theme FOUC boot script is a static string (no `JSON.stringify` interpolation) to clear CodeQL `js/bad-code-sanitization`
 - CI workflow sets explicit `permissions: contents: read` (CodeQL `actions/missing-workflow-permissions`)
 - `stripAnsi` uses a linear scan instead of nested quantifier regexes (CodeQL `js/polynomial-redos`)

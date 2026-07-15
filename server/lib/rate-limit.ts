@@ -23,16 +23,24 @@ export interface RateLimiterOptions {
 
 export type RateLimitScope = "create" | "unlock";
 
+/** Soft cap on distinct client keys held in memory (evict expired, then oldest). */
+const DEFAULT_MAX_KEYS = 50_000;
+/** Prune expired keys every N attempts to bound memory under key churn. */
+const PRUNE_EVERY_ATTEMPTS = 64;
+
 export class RateLimiter {
   private readonly hits = new Map<string, number[]>();
   private readonly limit: number;
   private readonly windowMs: number;
   private readonly now: () => number;
+  private readonly maxKeys: number;
+  private attemptCount = 0;
 
-  constructor(options: RateLimiterOptions) {
+  constructor(options: RateLimiterOptions & { maxKeys?: number }) {
     this.limit = options.limit;
     this.windowMs = options.windowMs;
     this.now = options.now ?? Date.now;
+    this.maxKeys = options.maxKeys ?? DEFAULT_MAX_KEYS;
   }
 
   /**
@@ -40,6 +48,11 @@ export class RateLimiter {
    * Call this for every attempt you want to count (e.g. failed unlocks).
    */
   attempt(key: string): RateLimitResult {
+    this.attemptCount += 1;
+    if (this.attemptCount % PRUNE_EVERY_ATTEMPTS === 0) {
+      this.prune();
+    }
+
     const now = this.now();
     const windowStart = now - this.windowMs;
     const prev = this.hits.get(key) ?? [];
@@ -57,6 +70,7 @@ export class RateLimiter {
 
     recent.push(now);
     this.hits.set(key, recent);
+    this.evictIfOverCap();
     return {
       allowed: true,
       retryAfterSec: 0,
@@ -66,18 +80,36 @@ export class RateLimiter {
 
   /** Test helper */
   reset(key?: string): void {
-    if (key === undefined) this.hits.clear();
-    else this.hits.delete(key);
+    if (key === undefined) {
+      this.hits.clear();
+      this.attemptCount = 0;
+    } else this.hits.delete(key);
+  }
+
+  /** Number of tracked keys (test helper). */
+  size(): number {
+    return this.hits.size;
   }
 
   /** Bound memory: drop empty/expired keys periodically */
   prune(): void {
     const now = this.now();
     const windowStart = now - this.windowMs;
-    for (const [key, times] of this.hits) {
+    for (const [k, times] of this.hits) {
       const recent = times.filter((t) => t > windowStart);
-      if (recent.length === 0) this.hits.delete(key);
-      else this.hits.set(key, recent);
+      if (recent.length === 0) this.hits.delete(k);
+      else this.hits.set(k, recent);
+    }
+  }
+
+  /** If still over cap after prune, drop arbitrary oldest Map entries (FIFO). */
+  private evictIfOverCap(): void {
+    if (this.hits.size <= this.maxKeys) return;
+    this.prune();
+    while (this.hits.size > this.maxKeys) {
+      const oldestKey = this.hits.keys().next().value;
+      if (oldestKey === undefined) break;
+      this.hits.delete(oldestKey);
     }
   }
 }
