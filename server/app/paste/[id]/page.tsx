@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
-import { BasicPasteView } from "@/components/BasicPasteView";
+import { LogCanvas } from "@/components/LogCanvas";
 import { PasswordGate } from "@/components/PasswordGate";
 import { authCookieName, verifyUnlockToken } from "@/lib/auth-cookie";
 import { getDb } from "@/lib/db";
@@ -32,7 +32,7 @@ export default async function PastePage({ params }: PageProps) {
 
   const { paste } = result;
   return (
-    <BasicPasteView
+    <LogCanvas
       id={paste.id}
       rawContent={paste.rawContent}
       metadata={paste.metadata}
