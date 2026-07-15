@@ -1,6 +1,11 @@
+import { ThemeToggle } from "@/components/ThemeToggle";
+
 export default function HomePage() {
   return (
     <main className="mx-auto flex min-h-full max-w-3xl flex-col gap-8 px-6 py-16">
+      <div className="flex justify-end">
+        <ThemeToggle compact />
+      </div>
       <header className="space-y-3">
         <p className="font-mono text-sm text-vscode-accent">PaperCut</p>
         <h1 className="text-3xl font-semibold tracking-tight text-vscode-fg sm:text-4xl">
