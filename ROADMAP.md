@@ -77,7 +77,7 @@ Focus: log analysis depth.
 | # | Feature | Area | Notes |
 |---|---------|------|--------|
 | 1.2.1 | **Column / wrap mode**, sticky header | ui | ✅ Done (wrap/nowrap + sticky gutter, `localStorage`) |
-| 1.2.2 | **Bookmark / pin lines** (local only) | ui | Session or localStorage |
+| 1.2.2 | **Bookmark / pin lines** (local only) | ui | ✅ Done (per-paste `localStorage`, sidebar pins) |
 | 1.2.3 | **Multi-file or multi-paste compare** (side-by-side) | ui, api | Optional second paste id |
 | 1.2.4 | **Custom highlight rules** (user regex → color) | ui | Per-browser config |
 | 1.2.5 | **Timeline scrubber** for timestamped logs | ui | Detect common timestamp formats |

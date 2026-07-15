@@ -15,6 +15,11 @@ import {
   type LineSelection,
 } from "@/lib/log-lines";
 import {
+  persistBookmarks,
+  readStoredBookmarks,
+  toggleBookmark,
+} from "@/lib/bookmarks";
+import {
   persistWrapMode,
   resolveInitialWrapMode,
   type WrapMode,
@@ -69,17 +74,56 @@ export function LogCanvas({
   const [copied, setCopied] = useState(false);
   const [wrapMode, setWrapMode] = useState<WrapMode>("wrap");
   const [wrapMounted, setWrapMounted] = useState(false);
+  const [bookmarks, setBookmarks] = useState<number[]>([]);
 
   useEffect(() => {
     setWrapMode(resolveInitialWrapMode());
     setWrapMounted(true);
   }, []);
 
+  // Load pins for this paste (local only)
+  useEffect(() => {
+    setBookmarks(readStoredBookmarks(id));
+  }, [id]);
+
   function toggleWrapMode() {
     const next: WrapMode = wrapMode === "wrap" ? "nowrap" : "wrap";
     setWrapMode(next);
     persistWrapMode(next);
   }
+
+  const onToggleBookmark = useCallback(
+    (lineNumber: number) => {
+      setBookmarks((prev) => {
+        const next = toggleBookmark(prev, lineNumber);
+        persistBookmarks(id, next);
+        return next;
+      });
+    },
+    [id],
+  );
+
+  function clearBookmarks() {
+    setBookmarks([]);
+    persistBookmarks(id, []);
+  }
+
+  function jumpToBookmark(lineNumber: number) {
+    // Clear first so re-clicking the same pin still scrolls
+    setScrollToLine(null);
+    requestAnimationFrame(() => setScrollToLine(lineNumber));
+  }
+
+  const bookmarkPreviews = useMemo(() => {
+    const byNum = new Map(allLines.map((l) => [l.lineNumber, l] as const));
+    return bookmarks.map((n) => {
+      const line = byNum.get(n);
+      const plain = line?.plain ?? "";
+      const preview =
+        plain.length > 48 ? `${plain.slice(0, 48)}…` : plain || "(empty)";
+      return { lineNumber: n, preview };
+    });
+  }, [allLines, bookmarks]);
 
   const query = useMemo(() => parseSearchQuery(search), [search]);
   const visibleLines = useMemo(
@@ -209,6 +253,48 @@ export function LogCanvas({
             </ul>
           </div>
 
+          <div className="min-h-0 flex-1">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-vscode-muted">
+                Pins
+              </p>
+              {bookmarks.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={clearBookmarks}
+                  className="text-[10px] text-vscode-muted hover:text-vscode-fg"
+                >
+                  Clear
+                </button>
+              ) : null}
+            </div>
+            {bookmarkPreviews.length === 0 ? (
+              <p className="text-[11px] leading-snug text-vscode-muted">
+                Star a line to pin it (saved in this browser only).
+              </p>
+            ) : (
+              <ul className="max-h-48 space-y-1 overflow-y-auto">
+                {bookmarkPreviews.map(({ lineNumber, preview }) => (
+                  <li key={lineNumber}>
+                    <button
+                      type="button"
+                      onClick={() => jumpToBookmark(lineNumber)}
+                      className="flex w-full flex-col rounded px-1 py-0.5 text-left hover:bg-vscode-line"
+                      title={preview}
+                    >
+                      <span className="font-mono text-[11px] text-vscode-accent">
+                        L{lineNumber}
+                      </span>
+                      <span className="truncate font-mono text-[10px] text-vscode-muted">
+                        {preview}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
           <div className="mt-auto space-y-2">
             <button
               type="button"
@@ -271,9 +357,11 @@ export function LogCanvas({
             <VirtualLogList
               lines={visibleLines}
               selection={selection}
+              bookmarks={bookmarks}
               wrapMode={wrapMode}
               scrollToLineNumber={scrollToLine}
               onLineNumberClick={onLineNumberClick}
+              onToggleBookmark={onToggleBookmark}
             />
           </div>
         </div>

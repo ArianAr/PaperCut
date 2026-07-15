@@ -19,16 +19,20 @@ const LEVEL_BAR: Record<string, string> = {
 interface LogLineRowProps {
   line: ParsedLogLine;
   selected: boolean;
+  bookmarked: boolean;
   wrapMode: WrapMode;
   onLineNumberClick: (lineNumber: number, shiftKey: boolean) => void;
+  onToggleBookmark: (lineNumber: number) => void;
   style?: React.CSSProperties;
 }
 
 export const LogLineRow = memo(function LogLineRow({
   line,
   selected,
+  bookmarked,
   wrapMode,
   onLineNumberClick,
+  onToggleBookmark,
   style,
 }: LogLineRowProps) {
   const nowrap = wrapMode === "nowrap";
@@ -43,17 +47,41 @@ export const LogLineRow = memo(function LogLineRow({
     <div
       style={style}
       data-line={line.lineNumber}
+      data-bookmarked={bookmarked ? "true" : undefined}
       className={`flex min-w-0 items-start border-b border-vscode-line/40 font-mono text-[13px] leading-6 ${
         nowrap ? "w-max min-w-full" : "w-full"
-      } ${selected ? "bg-vscode-selection/50" : "hover:bg-vscode-line/30"}`}
+      } ${selected ? "bg-vscode-selection/50" : "hover:bg-vscode-line/30"} ${
+        bookmarked && !selected ? "bg-vscode-accent/5" : ""
+      }`}
     >
       <div
         className={`sticky left-0 z-10 flex shrink-0 items-start ${gutterBg}`}
       >
         <button
           type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleBookmark(line.lineNumber);
+          }}
+          className={`w-5 shrink-0 select-none text-center text-[11px] leading-6 ${
+            bookmarked
+              ? "text-vscode-accent"
+              : "text-vscode-gutter/50 hover:text-vscode-accent"
+          }`}
+          aria-label={
+            bookmarked
+              ? `Unpin line ${line.lineNumber}`
+              : `Pin line ${line.lineNumber}`
+          }
+          aria-pressed={bookmarked}
+          title={bookmarked ? "Unpin line" : "Pin line"}
+        >
+          {bookmarked ? "★" : "☆"}
+        </button>
+        <button
+          type="button"
           onClick={(e) => onLineNumberClick(line.lineNumber, e.shiftKey)}
-          className="w-14 select-none pr-2 text-right text-vscode-gutter hover:text-vscode-fg"
+          className="w-12 select-none pr-1 text-right text-vscode-gutter hover:text-vscode-fg"
           aria-label={`Line ${line.lineNumber}`}
         >
           {line.lineNumber}
