@@ -32,6 +32,11 @@ import {
   type HighlightRule,
 } from "@/lib/highlight-rules";
 import {
+  buildCompareSearch,
+  normalizeCompareId,
+  parseComparePasteResponse,
+} from "@/lib/compare";
+import {
   buildTimelineIndex,
   formatTimelineTime,
   nearestTimelinePoint,
@@ -71,6 +76,8 @@ interface LogCanvasProps {
   metadata: PasteMetadata;
   createdAt: number;
   expiresAt: number | null;
+  /** Optional second paste id from `?compare=` */
+  initialCompareId?: string;
 }
 
 export function LogCanvas({
@@ -79,6 +86,7 @@ export function LogCanvas({
   metadata,
   createdAt,
   expiresAt,
+  initialCompareId,
 }: LogCanvasProps) {
   const allLines = useMemo(() => parseLogLines(rawContent), [rawContent]);
   const levelCounts = useMemo(() => countLevels(allLines), [allLines]);
@@ -99,6 +107,15 @@ export function LogCanvas({
   const [draftError, setDraftError] = useState<string | null>(null);
   const [scrubRatio, setScrubRatio] = useState(0);
   const [scrubLabel, setScrubLabel] = useState<string | null>(null);
+  const [compareId, setCompareId] = useState<string | null>(() =>
+    normalizeCompareId(initialCompareId ?? null),
+  );
+  const [compareDraft, setCompareDraft] = useState(
+    () => normalizeCompareId(initialCompareId ?? null) ?? "",
+  );
+  const [compareRaw, setCompareRaw] = useState<string | null>(null);
+  const [compareError, setCompareError] = useState<string | null>(null);
+  const [compareLoading, setCompareLoading] = useState(false);
 
   useEffect(() => {
     setWrapMode(resolveInitialWrapMode());
@@ -110,6 +127,87 @@ export function LogCanvas({
   useEffect(() => {
     setBookmarks(readStoredBookmarks(id));
   }, [id]);
+
+  // Load compare paste client-side (public unlock cookie if already unlocked)
+  useEffect(() => {
+    if (!compareId || compareId === id) {
+      setCompareRaw(null);
+      setCompareError(
+        compareId === id ? "Cannot compare a paste with itself." : null,
+      );
+      setCompareLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setCompareLoading(true);
+    setCompareError(null);
+    setCompareRaw(null);
+
+    (async () => {
+      try {
+        const res = await fetch(`/api/pastes/${encodeURIComponent(compareId)}`, {
+          credentials: "same-origin",
+        });
+        let body: unknown = null;
+        try {
+          body = await res.json();
+        } catch {
+          body = null;
+        }
+        if (cancelled) return;
+        const parsed = parseComparePasteResponse(res.status, body, compareId);
+        if (!parsed.ok) {
+          setCompareError(parsed.error);
+          setCompareRaw(null);
+        } else {
+          setCompareRaw(parsed.rawContent);
+          setCompareError(null);
+        }
+      } catch {
+        if (!cancelled) {
+          setCompareError("Network error loading second paste.");
+          setCompareRaw(null);
+        }
+      } finally {
+        if (!cancelled) setCompareLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [compareId, id]);
+
+  function applyCompare(rawId: string) {
+    const next = normalizeCompareId(rawId);
+    if (!next) {
+      setCompareError("Invalid paste id.");
+      return;
+    }
+    if (next === id) {
+      setCompareError("Cannot compare a paste with itself.");
+      return;
+    }
+    setCompareId(next);
+    setCompareDraft(next);
+    const url = `${window.location.pathname}${buildCompareSearch(window.location.search, next)}${window.location.hash}`;
+    window.history.replaceState(null, "", url);
+  }
+
+  function clearCompare() {
+    setCompareId(null);
+    setCompareDraft("");
+    setCompareRaw(null);
+    setCompareError(null);
+    const url = `${window.location.pathname}${buildCompareSearch(window.location.search, null)}${window.location.hash}`;
+    window.history.replaceState(null, "", url);
+  }
+
+  const compareLines = useMemo(
+    () => (compareRaw != null ? parseLogLines(compareRaw) : []),
+    [compareRaw],
+  );
 
   const compiledHighlights = useMemo(
     () => compileHighlightRules(highlightRules),
@@ -199,6 +297,16 @@ export function LogCanvas({
     () => filterLogLines(allLines, levels, query),
     [allLines, levels, query],
   );
+
+  const visibleCompareLines = useMemo(
+    () =>
+      compareRaw != null
+        ? filterLogLines(compareLines, levels, query)
+        : [],
+    [compareRaw, compareLines, levels, query],
+  );
+
+  const comparing = compareId != null && compareId !== id;
 
   // Timeline from currently visible lines so jumps always land in the list
   const timeline = useMemo(
@@ -494,6 +602,54 @@ export function LogCanvas({
             </div>
           </div>
 
+          <div className="space-y-1 border-t border-vscode-border pt-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-vscode-muted">
+              Compare
+            </p>
+            <div className="flex gap-1">
+              <input
+                type="text"
+                value={compareDraft}
+                onChange={(e) => setCompareDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    applyCompare(compareDraft);
+                  }
+                }}
+                placeholder="paste id"
+                className="min-w-0 flex-1 rounded border border-vscode-border bg-vscode-bg px-1.5 py-1 font-mono text-[11px] outline-none focus:border-vscode-accent"
+                spellCheck={false}
+                autoComplete="off"
+                aria-label="Compare paste id"
+              />
+              <button
+                type="button"
+                onClick={() => applyCompare(compareDraft)}
+                className="shrink-0 rounded border border-vscode-border bg-vscode-line px-2 py-1 text-[10px] hover:border-vscode-accent"
+              >
+                Go
+              </button>
+            </div>
+            {comparing ? (
+              <button
+                type="button"
+                onClick={clearCompare}
+                className="text-[10px] text-vscode-muted hover:text-vscode-fg"
+              >
+                Clear compare
+              </button>
+            ) : null}
+            {compareLoading ? (
+              <p className="text-[10px] text-vscode-muted">Loading…</p>
+            ) : null}
+            {compareError ? (
+              <p className="text-[10px] text-vscode-error" role="alert">
+                {compareError}
+              </p>
+            ) : null}
+          </div>
+
           <div className="mt-auto space-y-2">
             <button
               type="button"
@@ -598,17 +754,57 @@ export function LogCanvas({
               />
             </div>
           ) : null}
-          <div className="min-h-0 flex-1">
-            <VirtualLogList
-              lines={visibleLines}
-              selection={selection}
-              bookmarks={bookmarks}
-              highlightRules={compiledHighlights}
-              wrapMode={wrapMode}
-              scrollToLineNumber={scrollToLine}
-              onLineNumberClick={onLineNumberClick}
-              onToggleBookmark={onToggleBookmark}
-            />
+          <div
+            className={`min-h-0 flex-1 ${comparing && compareRaw != null ? "flex" : ""}`}
+          >
+            <div
+              className={
+                comparing && compareRaw != null
+                  ? "flex min-h-0 min-w-0 flex-1 flex-col border-r border-vscode-border"
+                  : "h-full min-h-0"
+              }
+            >
+              {comparing && compareRaw != null ? (
+                <p className="shrink-0 border-b border-vscode-border bg-vscode-sidebar px-2 py-1 font-mono text-[10px] text-vscode-muted">
+                  A · paste/{id}
+                </p>
+              ) : null}
+              <div className="min-h-0 flex-1">
+                <VirtualLogList
+                  lines={visibleLines}
+                  selection={selection}
+                  bookmarks={bookmarks}
+                  highlightRules={compiledHighlights}
+                  wrapMode={wrapMode}
+                  scrollToLineNumber={scrollToLine}
+                  onLineNumberClick={onLineNumberClick}
+                  onToggleBookmark={onToggleBookmark}
+                />
+              </div>
+            </div>
+            {comparing && compareRaw != null ? (
+              <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+                <p className="shrink-0 border-b border-vscode-border bg-vscode-sidebar px-2 py-1 font-mono text-[10px] text-vscode-muted">
+                  B · paste/{compareId}
+                </p>
+                <div className="min-h-0 flex-1">
+                  <VirtualLogList
+                    lines={visibleCompareLines}
+                    selection={null}
+                    bookmarks={[]}
+                    highlightRules={compiledHighlights}
+                    wrapMode={wrapMode}
+                    scrollToLineNumber={null}
+                    onLineNumberClick={() => {
+                      /* selection only for primary pane */
+                    }}
+                    onToggleBookmark={() => {
+                      /* pins only for primary paste */
+                    }}
+                  />
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Log canvas **download filtered / visible lines** (`paste-<id>-filtered.log`)
 - Log canvas **custom highlight rules** (regex → color, per-browser `localStorage`)
 - Log canvas **timeline scrubber** for timestamped logs (ISO / date-time / syslog / epoch)
+- Log canvas **multi-paste compare** (side-by-side via `?compare=<id>` or sidebar)
 
 ### Fixed
 
