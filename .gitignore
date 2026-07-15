@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build / Next.js
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# SQLite / local data
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+*.swo
+
+# Logs & coverage
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+coverage/
+.nyc_output/
+
+# Test / temp
+tmp/
+temp/
+.turbo/
+
+# Docker
+docker-data/
+
+# Vercel / deploy
+.vercel
