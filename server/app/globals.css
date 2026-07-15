@@ -2,19 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --bg: #1e1e1e;
-  --sidebar: #252526;
-  --line: #2d2d2d;
-  --border: #3c3c3c;
-  --fg: #d4d4d4;
-  --muted: #858585;
-  --accent: #007acc;
-  --error: #f44747;
-  --warn: #cca700;
-  --info: #3794ff;
-  --debug: #808080;
-  --success: #89d185;
+/*
+  VS Code–inspired themes as RGB channels so Tailwind opacity modifiers work
+  (e.g. bg-vscode-line/40).
+*/
+:root,
+[data-theme="dark"] {
+  --vscode-bg: 30 30 30;
+  --vscode-sidebar: 37 37 38;
+  --vscode-line: 45 45 45;
+  --vscode-border: 60 60 60;
+  --vscode-fg: 212 212 212;
+  --vscode-muted: 133 133 133;
+  --vscode-accent: 0 122 204;
+  --vscode-error: 244 71 71;
+  --vscode-warn: 204 167 0;
+  --vscode-info: 55 148 255;
+  --vscode-debug: 128 128 128;
+  --vscode-success: 137 209 133;
+  --vscode-selection: 38 79 120;
+  --vscode-gutter: 133 133 133;
+  --selection-fg: 255 255 255;
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --vscode-bg: 255 255 255;
+  --vscode-sidebar: 243 243 243;
+  --vscode-line: 232 232 232;
+  --vscode-border: 206 206 206;
+  --vscode-fg: 51 51 51;
+  --vscode-muted: 110 110 110;
+  --vscode-accent: 0 120 212;
+  --vscode-error: 205 49 49;
+  --vscode-warn: 137 110 0;
+  --vscode-info: 0 102 204;
+  --vscode-debug: 110 110 110;
+  --vscode-success: 15 128 62;
+  --vscode-selection: 173 214 255;
+  --vscode-gutter: 110 110 110;
+  --selection-fg: 0 0 0;
+  color-scheme: light;
 }
 
 html,
@@ -23,8 +51,8 @@ body {
 }
 
 body {
-  background: var(--bg);
-  color: var(--fg);
+  background: rgb(var(--vscode-bg));
+  color: rgb(var(--vscode-fg));
   font-family:
     ui-sans-serif,
     system-ui,
@@ -37,63 +65,113 @@ body {
 }
 
 ::selection {
-  background: #264f78;
-  color: #fff;
+  background: rgb(var(--vscode-selection));
+  color: rgb(var(--selection-fg));
 }
 
-/* ansi_up default classes — tune toward VS Code dark */
-.ansi-black-fg {
+/* ANSI — dark defaults */
+[data-theme="dark"] .ansi-black-fg {
   color: #1e1e1e;
 }
-.ansi-red-fg {
+[data-theme="dark"] .ansi-red-fg {
   color: #f44747;
 }
-.ansi-green-fg {
+[data-theme="dark"] .ansi-green-fg {
   color: #89d185;
 }
-.ansi-yellow-fg {
+[data-theme="dark"] .ansi-yellow-fg {
   color: #cca700;
 }
-.ansi-blue-fg {
+[data-theme="dark"] .ansi-blue-fg {
   color: #3794ff;
 }
-.ansi-magenta-fg {
+[data-theme="dark"] .ansi-magenta-fg {
   color: #c586c0;
 }
-.ansi-cyan-fg {
+[data-theme="dark"] .ansi-cyan-fg {
   color: #4ec9b0;
 }
-.ansi-white-fg {
+[data-theme="dark"] .ansi-white-fg {
   color: #d4d4d4;
 }
-.ansi-bright-black-fg {
+[data-theme="dark"] .ansi-bright-black-fg {
   color: #808080;
 }
-.ansi-bright-red-fg {
+[data-theme="dark"] .ansi-bright-red-fg {
   color: #f44747;
 }
-.ansi-bright-green-fg {
+[data-theme="dark"] .ansi-bright-green-fg {
   color: #89d185;
 }
-.ansi-bright-yellow-fg {
+[data-theme="dark"] .ansi-bright-yellow-fg {
   color: #dcdcaa;
 }
-.ansi-bright-blue-fg {
+[data-theme="dark"] .ansi-bright-blue-fg {
   color: #3794ff;
 }
-.ansi-bright-magenta-fg {
+[data-theme="dark"] .ansi-bright-magenta-fg {
   color: #c586c0;
 }
-.ansi-bright-cyan-fg {
+[data-theme="dark"] .ansi-bright-cyan-fg {
   color: #4ec9b0;
 }
-.ansi-bright-white-fg {
+[data-theme="dark"] .ansi-bright-white-fg {
   color: #ffffff;
 }
+
+/* ANSI — light (VS Code Light+) */
+[data-theme="light"] .ansi-black-fg {
+  color: #000000;
+}
+[data-theme="light"] .ansi-red-fg {
+  color: #cd3131;
+}
+[data-theme="light"] .ansi-green-fg {
+  color: #0f8040;
+}
+[data-theme="light"] .ansi-yellow-fg {
+  color: #949800;
+}
+[data-theme="light"] .ansi-blue-fg {
+  color: #0451a5;
+}
+[data-theme="light"] .ansi-magenta-fg {
+  color: #bc05bc;
+}
+[data-theme="light"] .ansi-cyan-fg {
+  color: #0598bc;
+}
+[data-theme="light"] .ansi-white-fg {
+  color: #555555;
+}
+[data-theme="light"] .ansi-bright-black-fg {
+  color: #666666;
+}
+[data-theme="light"] .ansi-bright-red-fg {
+  color: #cd3131;
+}
+[data-theme="light"] .ansi-bright-green-fg {
+  color: #14ce14;
+}
+[data-theme="light"] .ansi-bright-yellow-fg {
+  color: #b5ba00;
+}
+[data-theme="light"] .ansi-bright-blue-fg {
+  color: #0451a5;
+}
+[data-theme="light"] .ansi-bright-magenta-fg {
+  color: #bc05bc;
+}
+[data-theme="light"] .ansi-bright-cyan-fg {
+  color: #0598bc;
+}
+[data-theme="light"] .ansi-bright-white-fg {
+  color: #a5a5a5;
+}
+
 .ansi-bold {
   font-weight: 700;
 }
 .ansi-underline {
   text-decoration: underline;
 }
-

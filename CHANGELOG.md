@@ -10,10 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - GitHub Actions **Publish npm** workflow — auto-publish `papercut-cli` on GitHub Release via [npm trusted publishers](https://docs.npmjs.com/trusted-publishers) (OIDC; no long-lived token)
+- Light/dark theme toggle (VS Code–style palettes, `localStorage` persistence)
 
 ### Planned
 
-See [ROADMAP.md](./ROADMAP.md) for remaining v1.1+ items (metrics, theme toggle, scale features, etc.).
+See [ROADMAP.md](./ROADMAP.md) for remaining v1.1+ items (opt-in metrics, scale features, etc.).
 
 ## [1.1.0] - 2026-07-15
 

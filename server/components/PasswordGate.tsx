@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import { ThemeToggle } from "./ThemeToggle";
 
 interface PasswordGateProps {
   pasteId: string;
@@ -40,6 +41,9 @@ export function PasswordGate({ pasteId }: PasswordGateProps) {
 
   return (
     <main className="mx-auto flex min-h-full max-w-md flex-col justify-center px-6 py-16">
+      <div className="mb-4 flex justify-end">
+        <ThemeToggle compact />
+      </div>
       <div className="rounded-lg border border-vscode-border bg-vscode-sidebar p-6 shadow-xl">
         <h1 className="mb-1 text-lg font-semibold text-vscode-fg">
           Protected paste

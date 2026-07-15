@@ -1,5 +1,8 @@
 import type { Config } from "tailwindcss";
 
+const withAlpha = (channel: string) =>
+  `rgb(var(${channel}) / <alpha-value>)`;
+
 const config: Config = {
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
@@ -9,20 +12,20 @@ const config: Config = {
     extend: {
       colors: {
         vscode: {
-          bg: "#1e1e1e",
-          sidebar: "#252526",
-          line: "#2d2d2d",
-          border: "#3c3c3c",
-          fg: "#d4d4d4",
-          muted: "#858585",
-          accent: "#007acc",
-          error: "#f44747",
-          warn: "#cca700",
-          info: "#3794ff",
-          debug: "#808080",
-          success: "#89d185",
-          selection: "#264f78",
-          gutter: "#858585",
+          bg: withAlpha("--vscode-bg"),
+          sidebar: withAlpha("--vscode-sidebar"),
+          line: withAlpha("--vscode-line"),
+          border: withAlpha("--vscode-border"),
+          fg: withAlpha("--vscode-fg"),
+          muted: withAlpha("--vscode-muted"),
+          accent: withAlpha("--vscode-accent"),
+          error: withAlpha("--vscode-error"),
+          warn: withAlpha("--vscode-warn"),
+          info: withAlpha("--vscode-info"),
+          debug: withAlpha("--vscode-debug"),
+          success: withAlpha("--vscode-success"),
+          selection: withAlpha("--vscode-selection"),
+          gutter: withAlpha("--vscode-gutter"),
         },
       },
       fontFamily: {

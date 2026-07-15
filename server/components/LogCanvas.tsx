@@ -14,6 +14,7 @@ import {
   type LevelFilterState,
   type LineSelection,
 } from "@/lib/log-lines";
+import { ThemeToggle } from "./ThemeToggle";
 import { VirtualLogList } from "./VirtualLogList";
 
 const FILTER_LEVELS: LogLevel[] = [
@@ -151,6 +152,7 @@ export function LogCanvas({
           {expiresAt ? (
             <span title="Expires">exp {new Date(expiresAt).toLocaleString()}</span>
           ) : null}
+          <ThemeToggle compact />
         </div>
       </header>
 

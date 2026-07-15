@@ -37,7 +37,7 @@ Focus: production operators and contributors.
 | 1.1.3 | **CLI publish dry-run** / npm package readiness | cli | ✅ Done (`cli/PUBLISH.md` + CI `cli-pack`) |
 | 1.1.4 | **Structured app metrics (opt-in)** | server | Counters only; no content; disabled by default |
 | 1.1.5 | **Graceful DB backup note** + `sqlite3 .backup` recipe | docker, docs | ✅ Done (`docs/deploy`) |
-| 1.1.6 | **Dark/light toggle** (still VS Code aesthetic) | ui | Preference in `localStorage` |
+| 1.1.6 | **Dark/light toggle** (still VS Code aesthetic) | ui | ✅ Done (`localStorage` + `data-theme`) |
 | 1.1.7 | **Reverse proxy + HTTPS docs** (nginx, Caddy, Traefik) | docker, docs | ✅ Done (`docs/deploy`) |
 
 ---
