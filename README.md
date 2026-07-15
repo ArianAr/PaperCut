@@ -126,7 +126,7 @@ See [`.env.example`](./.env.example).
 
 ## Status
 
-Current version: **0.2.0** (see [CHANGELOG](./CHANGELOG.md)). APIs and UI may change before 1.0.
+Current version: **0.2.1** (see [CHANGELOG](./CHANGELOG.md)). APIs and UI may change before 1.0.
 
 ## License
 

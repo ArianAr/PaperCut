@@ -12,6 +12,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI workflows for test/lint on pull requests
 - Unlock rate limiting for private pastes
 
+## [0.2.1] - 2026-07-15
+
+### Added
+
+- [CHANGELOG.md](./CHANGELOG.md) (Keep a Changelog)
+- Release checklist in [CONTRIBUTING.md](./CONTRIBUTING.md) (versions, changelog, SECURITY, tag)
+
+### Changed
+
+- Package versions aligned to the release line on every tag (root, CLI, server)
+- [SECURITY.md](./SECURITY.md) supported-versions table tracks the current minor line
+- README documents current version and links to the changelog
+
 ## [0.2.0] - 2026-07-15
 
 ### Added
@@ -49,6 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Links
 
-- [Unreleased]: https://github.com/ArianAr/PaperCut/compare/v0.2.0...HEAD
+- [Unreleased]: https://github.com/ArianAr/PaperCut/compare/v0.2.1...HEAD
+- [0.2.1]: https://github.com/ArianAr/PaperCut/compare/v0.2.0...v0.2.1
 - [0.2.0]: https://github.com/ArianAr/PaperCut/compare/v0.1.0...v0.2.0
 - [0.1.0]: https://github.com/ArianAr/PaperCut/releases/tag/v0.1.0
