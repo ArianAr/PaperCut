@@ -9,7 +9,11 @@ import {
   type PasteMetadata,
 } from "./metadata";
 import { parseExpire } from "./parse-expire";
-import { hashPassword, verifyPassword } from "./password";
+import {
+  hashPassword,
+  validatePasswordInput,
+  verifyPassword,
+} from "./password";
 import { pastes, type PasteRow } from "./schema";
 
 const nanoid = customAlphabet(
@@ -93,6 +97,10 @@ export function createPaste(
   let passwordHash: string | null = null;
   let isEncrypted = false;
   if (input.password != null && input.password !== "") {
+    const pw = validatePasswordInput(input.password);
+    if (!pw.ok) {
+      return { ok: false, status: 400, error: pw.error };
+    }
     passwordHash = hashPassword(input.password);
     isEncrypted = true;
   }
@@ -172,6 +180,11 @@ export function unlockPaste(
 
   if (!row.isEncrypted || !row.passwordHash) {
     return { ok: false, status: 400, error: "Paste is not password-protected" };
+  }
+
+  const pw = validatePasswordInput(password);
+  if (!pw.ok) {
+    return { ok: false, status: 400, error: pw.error };
   }
 
   if (!verifyPassword(password, row.passwordHash)) {
