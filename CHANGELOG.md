@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `GET /api/health` readiness probe; Docker healthcheck uses it
 - Batch purge of expired pastes (`purgeExpiredPastes`)
 - `robots.txt` disallows crawlers on `/paste/` and `/api/`
-- Repo Dependabot config, CodeQL workflow, issue/PR templates
+- Repo Dependabot config and issue/PR templates (CodeQL via GitHub default setup)
 - CLI `--version` / `-V`
 
 ### Security
