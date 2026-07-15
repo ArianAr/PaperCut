@@ -6,7 +6,7 @@ Security fixes are provided for the versions below. Always run the latest patch 
 
 | Version | Supported          | Notes |
 | ------- | ------------------ | ----- |
-| 0.2.x   | :white_check_mark: | Current release line ([CHANGELOG](./CHANGELOG.md)) |
+| 0.2.x   | :white_check_mark: | Current release line (latest: **0.2.1**) — [CHANGELOG](./CHANGELOG.md) |
 | 0.1.x   | :x:                | Superseded by 0.2.x; no further fixes |
 | &lt; 0.1  | :x:                | Pre-release / untagged |
 
@@ -16,7 +16,7 @@ Until a stable **1.0** release:
 - Only the latest **0.x** minor line is supported (currently **0.2.x**).
 - Upgrade by pulling the latest release tag or `main` and redeploying (Docker or Node).
 
-When reporting an issue, include the version from `package.json` / the Git tag (e.g. `v0.2.0`).
+When reporting an issue, include the version from `package.json` / the Git tag (e.g. `v0.2.1`).
 
 ## Reporting a vulnerability
 
