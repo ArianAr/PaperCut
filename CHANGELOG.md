@@ -13,10 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Light/dark theme toggle (VS Code–style palettes, `localStorage` persistence)
 - Roadmap: **dependency currency** policy (prefer latest packages + majors plan)
 - Opt-in process metrics (`PAPERCUT_METRICS=1`) — `GET /api/metrics` counters only (`pastes_created`, `unlocks_ok`, `rate_limited`); disabled by default; no content/IP logging
+- Log canvas **wrap / no-wrap** toggle (dense horizontal scroll), sticky line-number gutter, preference in `localStorage`
 
 ### Planned
 
-See [ROADMAP.md](./ROADMAP.md) (dependency updates, scale features, etc.).
+See [ROADMAP.md](./ROADMAP.md) (dependency updates, canvas tools, scale features, etc.).
 
 ## [1.1.0] - 2026-07-15
 

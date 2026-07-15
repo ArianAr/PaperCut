@@ -14,6 +14,11 @@ import {
   type LevelFilterState,
   type LineSelection,
 } from "@/lib/log-lines";
+import {
+  persistWrapMode,
+  resolveInitialWrapMode,
+  type WrapMode,
+} from "@/lib/wrap-mode";
 import { ThemeToggle } from "./ThemeToggle";
 import { VirtualLogList } from "./VirtualLogList";
 
@@ -62,6 +67,19 @@ export function LogCanvas({
   const [selection, setSelection] = useState<LineSelection | null>(null);
   const [scrollToLine, setScrollToLine] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
+  const [wrapMode, setWrapMode] = useState<WrapMode>("wrap");
+  const [wrapMounted, setWrapMounted] = useState(false);
+
+  useEffect(() => {
+    setWrapMode(resolveInitialWrapMode());
+    setWrapMounted(true);
+  }, []);
+
+  function toggleWrapMode() {
+    const next: WrapMode = wrapMode === "wrap" ? "nowrap" : "wrap";
+    setWrapMode(next);
+    persistWrapMode(next);
+  }
 
   const query = useMemo(() => parseSearchQuery(search), [search]);
   const visibleLines = useMemo(
@@ -134,9 +152,16 @@ export function LogCanvas({
     URL.revokeObjectURL(url);
   }
 
+  const wrapLabel =
+    wrapMode === "wrap" ? "No wrap" : "Wrap";
+  const wrapTitle =
+    wrapMode === "wrap"
+      ? "Switch to no-wrap (horizontal scroll, dense columns)"
+      : "Switch to soft-wrap";
+
   return (
     <div className="flex h-screen min-h-0 flex-col bg-vscode-bg text-vscode-fg">
-      <header className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-vscode-border bg-vscode-sidebar px-4 py-2">
+      <header className="sticky top-0 z-20 flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-vscode-border bg-vscode-sidebar px-4 py-2">
         <div className="min-w-0">
           <p className="font-mono text-xs text-vscode-accent">PaperCut</p>
           <h1 className="truncate font-mono text-sm">paste/{id}</h1>
@@ -212,7 +237,7 @@ export function LogCanvas({
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <div className="flex shrink-0 items-center gap-2 border-b border-vscode-border bg-vscode-sidebar px-3 py-2">
+          <div className="sticky top-0 z-10 flex shrink-0 items-center gap-2 border-b border-vscode-border bg-vscode-sidebar px-3 py-2">
             <label className="sr-only" htmlFor="log-search">
               Search
             </label>
@@ -231,11 +256,22 @@ export function LogCanvas({
                 bad regex
               </span>
             ) : null}
+            <button
+              type="button"
+              onClick={toggleWrapMode}
+              className="shrink-0 rounded border border-vscode-border bg-vscode-line px-2 py-1.5 font-mono text-xs text-vscode-fg hover:border-vscode-accent"
+              aria-pressed={wrapMode === "nowrap"}
+              aria-label={wrapTitle}
+              title={wrapTitle}
+            >
+              {!wrapMounted ? "Wrap" : wrapLabel}
+            </button>
           </div>
           <div className="min-h-0 flex-1">
             <VirtualLogList
               lines={visibleLines}
               selection={selection}
+              wrapMode={wrapMode}
               scrollToLineNumber={scrollToLine}
               onLineNumberClick={onLineNumberClick}
             />

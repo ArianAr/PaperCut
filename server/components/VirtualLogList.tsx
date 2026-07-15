@@ -4,11 +4,13 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { useEffect, useRef } from "react";
 import type { LineSelection, ParsedLogLine } from "@/lib/log-lines";
 import { isLineSelected } from "@/lib/log-lines";
+import type { WrapMode } from "@/lib/wrap-mode";
 import { LogLineRow } from "./LogLineRow";
 
 interface VirtualLogListProps {
   lines: ParsedLogLine[];
   selection: LineSelection | null;
+  wrapMode: WrapMode;
   scrollToLineNumber: number | null;
   onLineNumberClick: (lineNumber: number, shiftKey: boolean) => void;
 }
@@ -18,6 +20,7 @@ const ROW_ESTIMATE = 28;
 export function VirtualLogList({
   lines,
   selection,
+  wrapMode,
   scrollToLineNumber,
   onLineNumberClick,
 }: VirtualLogListProps) {
@@ -38,10 +41,21 @@ export function VirtualLogList({
     }
   }, [scrollToLineNumber, lines, virtualizer]);
 
+  // Re-measure row heights when wrap mode changes (wrap vs single-line height).
+  useEffect(() => {
+    virtualizer.measure();
+  }, [wrapMode, virtualizer]);
+
   return (
-    <div ref={parentRef} className="h-full overflow-auto">
+    <div
+      ref={parentRef}
+      className="h-full overflow-auto"
+      data-wrap-mode={wrapMode}
+    >
       <div
-        className="relative w-full"
+        className={
+          wrapMode === "nowrap" ? "relative min-w-full w-max" : "relative w-full"
+        }
         style={{ height: `${virtualizer.getTotalSize()}px` }}
       >
         {virtualizer.getVirtualItems().map((item) => {
@@ -51,12 +65,17 @@ export function VirtualLogList({
               key={line.index}
               data-index={item.index}
               ref={virtualizer.measureElement}
-              className="absolute top-0 left-0 w-full"
+              className={
+                wrapMode === "nowrap"
+                  ? "absolute top-0 left-0 min-w-full w-max"
+                  : "absolute top-0 left-0 w-full"
+              }
               style={{ transform: `translateY(${item.start}px)` }}
             >
               <LogLineRow
                 line={line}
                 selected={isLineSelected(line.lineNumber, selection)}
+                wrapMode={wrapMode}
                 onLineNumberClick={onLineNumberClick}
               />
             </div>
