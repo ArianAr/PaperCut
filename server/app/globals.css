@@ -40,3 +40,60 @@ body {
   background: #264f78;
   color: #fff;
 }
+
+/* ansi_up default classes — tune toward VS Code dark */
+.ansi-black-fg {
+  color: #1e1e1e;
+}
+.ansi-red-fg {
+  color: #f44747;
+}
+.ansi-green-fg {
+  color: #89d185;
+}
+.ansi-yellow-fg {
+  color: #cca700;
+}
+.ansi-blue-fg {
+  color: #3794ff;
+}
+.ansi-magenta-fg {
+  color: #c586c0;
+}
+.ansi-cyan-fg {
+  color: #4ec9b0;
+}
+.ansi-white-fg {
+  color: #d4d4d4;
+}
+.ansi-bright-black-fg {
+  color: #808080;
+}
+.ansi-bright-red-fg {
+  color: #f44747;
+}
+.ansi-bright-green-fg {
+  color: #89d185;
+}
+.ansi-bright-yellow-fg {
+  color: #dcdcaa;
+}
+.ansi-bright-blue-fg {
+  color: #3794ff;
+}
+.ansi-bright-magenta-fg {
+  color: #c586c0;
+}
+.ansi-bright-cyan-fg {
+  color: #4ec9b0;
+}
+.ansi-bright-white-fg {
+  color: #ffffff;
+}
+.ansi-bold {
+  font-weight: 700;
+}
+.ansi-underline {
+  text-decoration: underline;
+}
+
