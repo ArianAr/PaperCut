@@ -45,7 +45,7 @@ export default function HomePage() {
           GitHub
         </a>
         {" · "}
-        v1.0 · GPL-3.0 · privacy-minded by default
+        v1.1 · GPL-3.0 · privacy-minded by default
       </footer>
     </main>
   );

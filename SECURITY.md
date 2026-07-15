@@ -6,18 +6,19 @@ Security fixes are provided for the versions below. Always run the latest patch 
 
 | Version | Supported          | Notes |
 | ------- | ------------------ | ----- |
-| 1.0.x   | :white_check_mark: | Current stable line (latest: **1.0.0**) — [CHANGELOG](./CHANGELOG.md) |
-| 0.2.x   | :x:                | Superseded by 1.0.x |
+| 1.1.x   | :white_check_mark: | Current stable line (latest: **1.1.0**) — [CHANGELOG](./CHANGELOG.md) |
+| 1.0.x   | :x:                | Superseded by 1.1.x |
+| 0.2.x   | :x:                | Superseded |
 | 0.1.x   | :x:                | Superseded |
 | &lt; 0.1  | :x:                | Pre-release / untagged |
 
 Policy:
 
 - Fixes land on `main` first, then ship in the next **semver** tag on the supported line.
-- Only the latest **stable minor** is supported (currently **1.0.x**).
+- Only the latest **stable minor** is supported (currently **1.1.x**).
 - Upgrade by pulling the latest release tag or `main` and redeploying (Docker or Node).
 
-When reporting an issue, include the version from `package.json` / the Git tag (e.g. `v1.0.0`).
+When reporting an issue, include the version from `package.json` / the Git tag (e.g. `v1.1.0`).
 
 ## Reporting a vulnerability
 
