@@ -18,15 +18,36 @@ Self-host PaperCut with Docker (or Node), optionally behind a reverse proxy for 
 
 ```bash
 export PASTE_AUTH_SECRET="$(openssl rand -hex 32)"
-export PAPERCUT_PUBLIC_URL="https://paste.example.com"   # public URL users open
+export PAPERCUT_PUBLIC_URL="http://localhost:3000"
 docker compose up --build -d
 ```
 
 - App listens on **port 3000** (HTTP) inside the container / on the host.
 - Data: Docker volume `papercut-data` → `/data/papercut.db`.
-- Health: `GET /api/health`.
+- Health: `GET /api/health` (also purges expired pastes).
 
 PaperCut does **not** terminate TLS itself. Put a reverse proxy in front for HTTPS.
+
+### Compose profiles
+
+| Profile | Command | What |
+|---------|---------|------|
+| (default) | `docker compose up -d` | App only on host port `PAPERCUT_HOST_PORT` (default `3000`) |
+| `proxy` | `docker compose --profile proxy up -d` | + **Caddy** on 80/443 with ACME (set `PAPERCUT_DOMAIN`) |
+| `sweeper` | `docker compose --profile sweeper up -d` | Polls `/api/health` every 5m to purge expired pastes without traffic |
+
+**HTTPS with Caddy (recommended path):**
+
+```bash
+export PASTE_AUTH_SECRET="$(openssl rand -hex 32)"
+export PAPERCUT_DOMAIN="paste.example.com"
+export PAPERCUT_PUBLIC_URL="https://paste.example.com"
+# Optional: do not publish app port on the host (proxy-only)
+export PAPERCUT_HOST_PORT=""
+docker compose --profile proxy up --build -d
+```
+
+Caddyfile: [`deploy/Caddyfile`](../../deploy/Caddyfile). DNS for `PAPERCUT_DOMAIN` must point at the host for Let's Encrypt.
 
 ---
 

@@ -1,0 +1,18 @@
+# PaperCut reverse proxy (compose profile `proxy`)
+# Set PAPERCUT_DOMAIN and ensure DNS points here for ACME HTTPS.
+# Local smoke test without HTTPS: use :80 only and papercut.localhost
+
+{
+	# Uncomment for local/dev without real DNS:
+	# auto_https off
+}
+
+{$PAPERCUT_DOMAIN:localhost} {
+	encode gzip
+
+	reverse_proxy papercut:3000 {
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-For {remote_host}
+		header_up Host {host}
+	}
+}

@@ -94,9 +94,9 @@ Focus: multi-instance self-host without losing privacy defaults.
 | 1.3.1 | **Shared rate-limit store** (Redis optional) | server, docker | Fallback: in-memory |
 | 1.3.2 | **Object storage for large pastes** (S3/MinIO optional) | server | Keep SQLite for metadata |
 | 1.3.3 | **Streaming upload** (chunked stdin) | cli, api | Very large builds |
-| 1.3.4 | **Background expire sweeper** (cron process) | server | Complement purge-on-read |
-| 1.3.5 | **Read replicas / RO mode** | server | Optional |
-| 1.3.6 | **Optional reverse-proxy stack** (compose profiles) | docker | nginx / Caddy / Traefik + ACME for domain + HTTPS; app still plain HTTP behind proxy |
+| 1.3.4 | **Background expire sweeper** (cron process) | server | ✅ Done (compose profile `sweeper` → `/api/health`) |
+| 1.3.5 | **Read replicas / RO mode** | server | Optional — deferred (complexity vs single-node default) |
+| 1.3.6 | **Optional reverse-proxy stack** (compose profiles) | docker | ✅ Done (Caddy profile `proxy` + ACME) |
 | 1.3.7 | **Proxy-aware runtime** | server | ✅ Done (`TRUSTED_PROXY_HOPS`, `COOKIE_SECURE` / public URL) |
 
 ### Reverse proxy & HTTPS (intent)
