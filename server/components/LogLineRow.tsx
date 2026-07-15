@@ -1,8 +1,11 @@
 "use client";
 
-import { memo } from "react";
-import { ansiToHtml } from "@/lib/ansi-html";
+import { memo, useMemo } from "react";
 import type { ParsedLogLine } from "@/lib/log-lines";
+import {
+  renderLineHtml,
+  type CompiledHighlightRule,
+} from "@/lib/highlight-rules";
 import type { WrapMode } from "@/lib/wrap-mode";
 import { JsonInspector } from "./JsonInspector";
 
@@ -21,6 +24,7 @@ interface LogLineRowProps {
   selected: boolean;
   bookmarked: boolean;
   wrapMode: WrapMode;
+  highlightRules: readonly CompiledHighlightRule[];
   onLineNumberClick: (lineNumber: number, shiftKey: boolean) => void;
   onToggleBookmark: (lineNumber: number) => void;
   style?: React.CSSProperties;
@@ -31,6 +35,7 @@ export const LogLineRow = memo(function LogLineRow({
   selected,
   bookmarked,
   wrapMode,
+  highlightRules,
   onLineNumberClick,
   onToggleBookmark,
   style,
@@ -42,6 +47,11 @@ export const LogLineRow = memo(function LogLineRow({
 
   // Opaque sticky gutter so content does not show through on horizontal scroll.
   const gutterBg = selected ? "bg-vscode-selection" : "bg-vscode-bg";
+
+  const lineHtml = useMemo(
+    () => renderLineHtml(line.raw, line.plain, highlightRules),
+    [line.raw, line.plain, highlightRules],
+  );
 
   return (
     <div
@@ -102,7 +112,7 @@ export const LogLineRow = memo(function LogLineRow({
       ) : (
         <code
           className={contentClass}
-          dangerouslySetInnerHTML={{ __html: ansiToHtml(line.raw) }}
+          dangerouslySetInnerHTML={{ __html: lineHtml }}
         />
       )}
     </div>

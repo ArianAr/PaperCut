@@ -21,6 +21,17 @@ import {
   toggleBookmark,
 } from "@/lib/bookmarks";
 import {
+  HIGHLIGHT_COLOR_OPTIONS,
+  MAX_HIGHLIGHT_RULES,
+  compileHighlightRules,
+  createHighlightRule,
+  persistHighlightRules,
+  readStoredHighlightRules,
+  validateHighlightPattern,
+  type HighlightColorId,
+  type HighlightRule,
+} from "@/lib/highlight-rules";
+import {
   persistWrapMode,
   resolveInitialWrapMode,
   type WrapMode,
@@ -76,9 +87,14 @@ export function LogCanvas({
   const [wrapMode, setWrapMode] = useState<WrapMode>("wrap");
   const [wrapMounted, setWrapMounted] = useState(false);
   const [bookmarks, setBookmarks] = useState<number[]>([]);
+  const [highlightRules, setHighlightRules] = useState<HighlightRule[]>([]);
+  const [draftPattern, setDraftPattern] = useState("");
+  const [draftColor, setDraftColor] = useState<HighlightColorId>("accent");
+  const [draftError, setDraftError] = useState<string | null>(null);
 
   useEffect(() => {
     setWrapMode(resolveInitialWrapMode());
+    setHighlightRules(readStoredHighlightRules());
     setWrapMounted(true);
   }, []);
 
@@ -86,6 +102,50 @@ export function LogCanvas({
   useEffect(() => {
     setBookmarks(readStoredBookmarks(id));
   }, [id]);
+
+  const compiledHighlights = useMemo(
+    () => compileHighlightRules(highlightRules),
+    [highlightRules],
+  );
+
+  function updateHighlightRules(next: HighlightRule[]) {
+    setHighlightRules(next);
+    persistHighlightRules(next);
+  }
+
+  function addHighlightRule() {
+    const check = validateHighlightPattern(draftPattern, "i");
+    if (!check.ok) {
+      setDraftError(check.error);
+      return;
+    }
+    if (highlightRules.length >= MAX_HIGHLIGHT_RULES) {
+      setDraftError(`Max ${MAX_HIGHLIGHT_RULES} rules`);
+      return;
+    }
+    setDraftError(null);
+    updateHighlightRules([
+      ...highlightRules,
+      createHighlightRule({
+        pattern: draftPattern.trim(),
+        flags: "i",
+        color: draftColor,
+      }),
+    ]);
+    setDraftPattern("");
+  }
+
+  function removeHighlightRule(ruleId: string) {
+    updateHighlightRules(highlightRules.filter((r) => r.id !== ruleId));
+  }
+
+  function toggleHighlightRule(ruleId: string) {
+    updateHighlightRules(
+      highlightRules.map((r) =>
+        r.id === ruleId ? { ...r, enabled: !r.enabled } : r,
+      ),
+    );
+  }
 
   function toggleWrapMode() {
     const next: WrapMode = wrapMode === "wrap" ? "nowrap" : "wrap";
@@ -264,46 +324,145 @@ export function LogCanvas({
             </ul>
           </div>
 
-          <div className="min-h-0 flex-1">
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-vscode-muted">
-                Pins
-              </p>
-              {bookmarks.length > 0 ? (
-                <button
-                  type="button"
-                  onClick={clearBookmarks}
-                  className="text-[10px] text-vscode-muted hover:text-vscode-fg"
-                >
-                  Clear
-                </button>
-              ) : null}
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto">
+            <div>
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-vscode-muted">
+                  Pins
+                </p>
+                {bookmarks.length > 0 ? (
+                  <button
+                    type="button"
+                    onClick={clearBookmarks}
+                    className="text-[10px] text-vscode-muted hover:text-vscode-fg"
+                  >
+                    Clear
+                  </button>
+                ) : null}
+              </div>
+              {bookmarkPreviews.length === 0 ? (
+                <p className="text-[11px] leading-snug text-vscode-muted">
+                  Star a line to pin it (saved in this browser only).
+                </p>
+              ) : (
+                <ul className="max-h-32 space-y-1 overflow-y-auto">
+                  {bookmarkPreviews.map(({ lineNumber, preview }) => (
+                    <li key={lineNumber}>
+                      <button
+                        type="button"
+                        onClick={() => jumpToBookmark(lineNumber)}
+                        className="flex w-full flex-col rounded px-1 py-0.5 text-left hover:bg-vscode-line"
+                        title={preview}
+                      >
+                        <span className="font-mono text-[11px] text-vscode-accent">
+                          L{lineNumber}
+                        </span>
+                        <span className="truncate font-mono text-[10px] text-vscode-muted">
+                          {preview}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-            {bookmarkPreviews.length === 0 ? (
-              <p className="text-[11px] leading-snug text-vscode-muted">
-                Star a line to pin it (saved in this browser only).
+
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-vscode-muted">
+                Highlights
               </p>
-            ) : (
-              <ul className="max-h-48 space-y-1 overflow-y-auto">
-                {bookmarkPreviews.map(({ lineNumber, preview }) => (
-                  <li key={lineNumber}>
-                    <button
-                      type="button"
-                      onClick={() => jumpToBookmark(lineNumber)}
-                      className="flex w-full flex-col rounded px-1 py-0.5 text-left hover:bg-vscode-line"
-                      title={preview}
+              <p className="mb-2 text-[10px] leading-snug text-vscode-muted">
+                Regex → color (this browser only).
+              </p>
+              <ul className="mb-2 max-h-36 space-y-1 overflow-y-auto">
+                {highlightRules.map((rule) => {
+                  const swatch =
+                    HIGHLIGHT_COLOR_OPTIONS.find((c) => c.id === rule.color)
+                      ?.swatchClass ?? "bg-vscode-accent";
+                  return (
+                    <li
+                      key={rule.id}
+                      className="flex items-start gap-1 rounded px-0.5 py-0.5 hover:bg-vscode-line"
                     >
-                      <span className="font-mono text-[11px] text-vscode-accent">
-                        L{lineNumber}
+                      <input
+                        type="checkbox"
+                        checked={rule.enabled}
+                        onChange={() => toggleHighlightRule(rule.id)}
+                        className="mt-0.5 accent-vscode-accent"
+                        aria-label={`Enable highlight ${rule.pattern}`}
+                      />
+                      <span
+                        className={`mt-1 h-2 w-2 shrink-0 rounded-sm ${swatch}`}
+                        aria-hidden
+                      />
+                      <span
+                        className="min-w-0 flex-1 truncate font-mono text-[10px] text-vscode-fg"
+                        title={`/${rule.pattern}/${rule.flags}`}
+                      >
+                        /{rule.pattern}/
                       </span>
-                      <span className="truncate font-mono text-[10px] text-vscode-muted">
-                        {preview}
-                      </span>
-                    </button>
-                  </li>
-                ))}
+                      <button
+                        type="button"
+                        onClick={() => removeHighlightRule(rule.id)}
+                        className="shrink-0 text-[10px] text-vscode-muted hover:text-vscode-error"
+                        aria-label={`Remove highlight ${rule.pattern}`}
+                      >
+                        ×
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
-            )}
+              <div className="space-y-1">
+                <input
+                  type="text"
+                  value={draftPattern}
+                  onChange={(e) => {
+                    setDraftPattern(e.target.value);
+                    setDraftError(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addHighlightRule();
+                    }
+                  }}
+                  placeholder="regex pattern"
+                  className="w-full rounded border border-vscode-border bg-vscode-bg px-1.5 py-1 font-mono text-[11px] outline-none focus:border-vscode-accent"
+                  spellCheck={false}
+                  autoComplete="off"
+                  aria-label="New highlight pattern"
+                />
+                <div className="flex items-center gap-1">
+                  <select
+                    value={draftColor}
+                    onChange={(e) =>
+                      setDraftColor(e.target.value as HighlightColorId)
+                    }
+                    className="min-w-0 flex-1 rounded border border-vscode-border bg-vscode-bg px-1 py-1 font-mono text-[10px] text-vscode-fg"
+                    aria-label="Highlight color"
+                  >
+                    {HIGHLIGHT_COLOR_OPTIONS.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.label}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={addHighlightRule}
+                    className="shrink-0 rounded border border-vscode-border bg-vscode-line px-2 py-1 text-[10px] hover:border-vscode-accent"
+                  >
+                    Add
+                  </button>
+                </div>
+                {draftError ? (
+                  <p className="text-[10px] text-vscode-error" role="alert">
+                    {draftError}
+                  </p>
+                ) : null}
+              </div>
+            </div>
           </div>
 
           <div className="mt-auto space-y-2">
@@ -384,6 +543,7 @@ export function LogCanvas({
               lines={visibleLines}
               selection={selection}
               bookmarks={bookmarks}
+              highlightRules={compiledHighlights}
               wrapMode={wrapMode}
               scrollToLineNumber={scrollToLine}
               onLineNumberClick={onLineNumberClick}
