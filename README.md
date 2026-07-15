@@ -195,6 +195,10 @@ UI: `/paste/:id` · deep links `#L12`, `#L12-L20`.
 
 **Current version: [1.1.0](https://github.com/ArianAr/PaperCut/releases/tag/v1.1.0)** · [1.x API compatibility](./CHANGELOG.md) · roadmap: [ROADMAP.md](./ROADMAP.md)
 
+## Disclaimer
+
+Most of this project was developed with AI assistance. Changes are **peer reviewed, checked, and tested by humans** before they land on `main` (CI, code review, and maintainer oversight). AI does not replace human accountability for what ships.
+
 ## License
 
 [GPL-3.0-only](./LICENSE)
