@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Log canvas **custom highlight rules** (regex → color, per-browser `localStorage`)
 - Log canvas **timeline scrubber** for timestamped logs (ISO / date-time / syslog / epoch)
 - Log canvas **multi-paste compare** (side-by-side via `?compare=<id>` or sidebar)
+- Proxy-aware runtime: `TRUSTED_PROXY_HOPS` for rate-limit client keys; Secure cookies from `PAPERCUT_PUBLIC_URL` / `COOKIE_SECURE`
 
 ### Fixed
 

@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { getPasteAuthSecret } from "./env";
+import { getCookieSecure, getPasteAuthSecret } from "./env";
 
 const COOKIE_PREFIX = "pc_auth_";
 const DEFAULT_TTL_MS = 24 * 60 * 60 * 1000; // 24h
@@ -64,7 +64,7 @@ export function unlockCookieOptions(maxAgeSeconds = 24 * 60 * 60) {
   return {
     httpOnly: true,
     sameSite: "lax" as const,
-    secure: process.env.NODE_ENV === "production",
+    secure: getCookieSecure(),
     path: "/",
     maxAge: maxAgeSeconds,
   };

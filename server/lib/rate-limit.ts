@@ -3,6 +3,8 @@
  * Suitable for single-node / Docker deploys. Keys are never written to logs.
  */
 
+import { getTrustedProxyHops } from "./env";
+
 export interface RateLimitResult {
   allowed: boolean;
   /** Seconds until the window has capacity again (when blocked) */
@@ -110,13 +112,25 @@ export function getCreateRateLimiter(): RateLimiter {
 
 /**
  * Coarse client key for rate limiting without logging.
- * Prefer X-Forwarded-For first hop when behind a trusted proxy; else "local".
+ * Uses X-Forwarded-For when TRUSTED_PROXY_HOPS > 0: with N trusted proxies,
+ * take the Nth address from the right (the client as seen by the outer proxy).
+ * Keys are never written to application logs.
  */
 export function clientKeyFromRequest(request: Request): string {
+  const hops = getTrustedProxyHops();
+  if (hops <= 0) return "local";
+
   const xff = request.headers.get("x-forwarded-for");
   if (xff) {
-    const first = xff.split(",")[0]?.trim();
-    if (first) return first.slice(0, 128);
+    const parts = xff
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+    if (parts.length > 0) {
+      const idx = Math.max(0, parts.length - hops);
+      const ip = parts[idx]!;
+      return ip.slice(0, 128);
+    }
   }
   // No stable remote address in the Fetch Request API without platform hooks.
   return "local";

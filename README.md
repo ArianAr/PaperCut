@@ -151,6 +151,8 @@ See [`.env.example`](./.env.example).
 | `CREATE_RATE_LIMIT` | Creates / window | `60` |
 | `CREATE_RATE_WINDOW_MS` | Create window (ms) | `600000` |
 | `PAPERCUT_METRICS` | Enable `GET /api/metrics` (`1`/`true`/`yes`/`on`) | off |
+| `TRUSTED_PROXY_HOPS` | X-Forwarded-For hops to trust (0 = ignore XFF) | `1` |
+| `COOKIE_SECURE` | Force Secure cookies (`1`/`0`); else from public URL | auto |
 
 ---
 
