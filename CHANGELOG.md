@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Log canvas **wrap / no-wrap** toggle (dense horizontal scroll), sticky line-number gutter, preference in `localStorage`
 - Log canvas **line pins / bookmarks** (per-paste `localStorage`, gutter star + sidebar jump list)
 - Log canvas **download filtered / visible lines** (`paste-<id>-filtered.log`)
+- Log canvas **custom highlight rules** (regex → color, per-browser `localStorage`)
 
 ### Fixed
 

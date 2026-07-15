@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 import type { LineSelection, ParsedLogLine } from "@/lib/log-lines";
 import { isLineSelected } from "@/lib/log-lines";
 import { isBookmarked } from "@/lib/bookmarks";
+import type { CompiledHighlightRule } from "@/lib/highlight-rules";
 import type { WrapMode } from "@/lib/wrap-mode";
 import { LogLineRow } from "./LogLineRow";
 
@@ -12,6 +13,7 @@ interface VirtualLogListProps {
   lines: ParsedLogLine[];
   selection: LineSelection | null;
   bookmarks: readonly number[];
+  highlightRules: readonly CompiledHighlightRule[];
   wrapMode: WrapMode;
   scrollToLineNumber: number | null;
   onLineNumberClick: (lineNumber: number, shiftKey: boolean) => void;
@@ -24,6 +26,7 @@ export function VirtualLogList({
   lines,
   selection,
   bookmarks,
+  highlightRules,
   wrapMode,
   scrollToLineNumber,
   onLineNumberClick,
@@ -83,6 +86,7 @@ export function VirtualLogList({
                 selected={isLineSelected(line.lineNumber, selection)}
                 bookmarked={isBookmarked(bookmarkSet, line.lineNumber)}
                 wrapMode={wrapMode}
+                highlightRules={highlightRules}
                 onLineNumberClick={onLineNumberClick}
                 onToggleBookmark={onToggleBookmark}
               />
