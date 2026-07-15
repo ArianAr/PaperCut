@@ -93,15 +93,18 @@ export interface CompiledHighlightRule {
   markClass: string;
 }
 
-/** Sanitize user flags; always ensure global for multi-match. */
+/** Sanitize user flags; always ensure global for multi-match. Dedupes letters. */
 export function sanitizeHighlightFlags(raw: string | undefined): string {
   const cleaned = (raw ?? "i").toLowerCase().replace(/[^gimsuy]/g, "");
+  // Dedupe while preserving a stable order: g i m s u y
+  const order = ["g", "i", "m", "s", "u", "y"] as const;
+  const set = new Set(cleaned);
+  let flags = order.filter((f) => set.has(f)).join("");
   // Prefer case-insensitive default when empty / only global after clean
-  let flags = cleaned;
   if (!flags || flags === "g") {
-    flags = flags === "g" ? "ig" : "i";
+    flags = flags === "g" ? "gi" : "i";
   }
-  if (!flags.includes("g")) flags += "g";
+  if (!flags.includes("g")) flags = `g${flags}`;
   return flags;
 }
 
@@ -215,6 +218,10 @@ interface MatchSpan {
   ruleOrder: number;
 }
 
+function spansOverlap(a: MatchSpan, b: MatchSpan): boolean {
+  return a.start < b.end && b.start < a.end;
+}
+
 /**
  * Apply non-overlapping highlights (earlier rules win on overlap).
  * Returns HTML with escaped text + <mark> spans.
@@ -227,14 +234,17 @@ export function highlightPlainText(
     return { html: escapeHtml(plain), matched: false };
   }
 
+  // Cap work on huge lines (custom highlights are best-effort on first chunk).
+  const scan = plain.length > 16_384 ? plain.slice(0, 16_384) : plain;
+
   const spans: MatchSpan[] = [];
   rules.forEach((rule, ruleOrder) => {
     rule.regex.lastIndex = 0;
     let m: RegExpExecArray | null;
     let guard = 0;
-    while ((m = rule.regex.exec(plain)) !== null) {
+    while ((m = rule.regex.exec(scan)) !== null) {
       guard += 1;
-      if (guard > 10_000) break; // pathological pattern safety
+      if (guard > 10_000) break; // match-count safety (not full ReDoS protection)
       const start = m.index;
       const end = start + m[0].length;
       if (end > start) {
@@ -243,7 +253,7 @@ export function highlightPlainText(
       // Avoid zero-length infinite loops
       if (m[0].length === 0) {
         rule.regex.lastIndex = start + 1;
-        if (rule.regex.lastIndex > plain.length) break;
+        if (rule.regex.lastIndex > scan.length) break;
       }
     }
   });
@@ -252,15 +262,16 @@ export function highlightPlainText(
     return { html: escapeHtml(plain), matched: false };
   }
 
-  spans.sort((a, b) => a.start - b.start || a.ruleOrder - b.ruleOrder || a.end - b.end);
-
+  // Earlier rules win: accept spans in rule order, skip any that overlap chosen ones.
+  spans.sort(
+    (a, b) => a.ruleOrder - b.ruleOrder || a.start - b.start || a.end - b.end,
+  );
   const chosen: MatchSpan[] = [];
-  let cursor = 0;
   for (const span of spans) {
-    if (span.start < cursor) continue;
+    if (chosen.some((c) => spansOverlap(c, span))) continue;
     chosen.push(span);
-    cursor = span.end;
   }
+  chosen.sort((a, b) => a.start - b.start);
 
   let html = "";
   let i = 0;

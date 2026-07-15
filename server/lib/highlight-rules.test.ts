@@ -15,13 +15,14 @@ import {
 import { clearAnsiCache } from "./ansi-html";
 
 describe("sanitizeHighlightFlags", () => {
-  it("defaults and forces global", () => {
-    expect(sanitizeHighlightFlags(undefined)).toBe("ig");
-    expect(sanitizeHighlightFlags("i")).toBe("ig");
+  it("defaults, forces global, dedupes", () => {
+    expect(sanitizeHighlightFlags(undefined)).toBe("gi");
+    expect(sanitizeHighlightFlags("i")).toBe("gi");
     expect(sanitizeHighlightFlags("gimsuy")).toBe("gimsuy");
+    expect(sanitizeHighlightFlags("ii")).toBe("gi");
     // Only valid flag chars kept (y = sticky); invalid stripped
-    expect(sanitizeHighlightFlags("xyz")).toBe("yg");
-    expect(sanitizeHighlightFlags("!!!")).toBe("ig");
+    expect(sanitizeHighlightFlags("xyz")).toBe("gy");
+    expect(sanitizeHighlightFlags("!!!")).toBe("gi");
   });
 });
 
@@ -73,14 +74,24 @@ describe("escapeHtml / highlightPlainText", () => {
     expect(html).toContain(" here");
   });
 
-  it("earlier rules win on overlap", () => {
-    const rules = compileHighlightRules([
+  it("earlier rules win on overlap (including nested starts)", () => {
+    const sameStart = compileHighlightRules([
       createHighlightRule({ id: "1", pattern: "foobar", color: "error" }),
       createHighlightRule({ id: "2", pattern: "foo", color: "info" }),
     ]);
-    const { html } = highlightPlainText("foobar", rules);
-    expect(html).toContain("bg-vscode-error");
-    expect(html).not.toContain("bg-vscode-info");
+    const sameStartHtml = highlightPlainText("foobar", sameStart).html;
+    expect(sameStartHtml).toContain("bg-vscode-error");
+    expect(sameStartHtml).not.toContain("bg-vscode-info");
+
+    // Later rule starts earlier in the string but must lose to earlier rule's match
+    const nested = compileHighlightRules([
+      createHighlightRule({ id: "1", pattern: "bar", color: "error" }),
+      createHighlightRule({ id: "2", pattern: "foobar", color: "info" }),
+    ]);
+    const nestedHtml = highlightPlainText("foobar", nested).html;
+    expect(nestedHtml).toContain("bg-vscode-error");
+    expect(nestedHtml).not.toContain("bg-vscode-info");
+    expect(nestedHtml).toMatch(/^foo<mark[^>]*>bar<\/mark>$/);
   });
 
   it("escapes match content", () => {
