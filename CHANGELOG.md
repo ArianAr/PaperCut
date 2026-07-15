@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Theme FOUC boot script is a static string (no `JSON.stringify` interpolation) to clear CodeQL `js/bad-code-sanitization`
+- CI workflow sets explicit `permissions: contents: read` (CodeQL `actions/missing-workflow-permissions`)
+- `stripAnsi` uses a linear scan instead of nested quantifier regexes (CodeQL `js/polynomial-redos`)
 
 ### Planned
 

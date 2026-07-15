@@ -30,12 +30,78 @@ const BRACKETED_LEVEL_RE =
 const LEADING_LEVEL_RE =
   /^\s*(?:[\d\-T:.Z]+\s+)?(?:\[)?(FATAL|ERROR|WARN(?:ING)?|INFO|DEBUG|TRACE)(?:\])?\b/i;
 
-/** Strip common ANSI CSI / OSC sequences for metadata and search. */
+/**
+ * Strip common ANSI CSI / OSC / 2-byte sequences for metadata and search.
+ * Hand-rolled linear scan (no nested quantifiers) to avoid ReDoS on hostile input.
+ */
 export function stripAnsi(input: string): string {
-  return input
-    .replace(/\u001b\][\s\S]*?(?:\u0007|\u001b\\)/g, "")
-    .replace(/\u001b\[[0-9;?]*[ -/]*[@-~]/g, "")
-    .replace(/\u001b[@-Z\\-_]/g, "");
+  let out = "";
+  let i = 0;
+  const n = input.length;
+
+  while (i < n) {
+    if (input.charCodeAt(i) !== 0x1b /* ESC */) {
+      out += input[i]!;
+      i += 1;
+      continue;
+    }
+
+    const next = i + 1 < n ? input.charCodeAt(i + 1) : -1;
+
+    // CSI: ESC [ ... final byte in @-~
+    if (next === 0x5b /* [ */) {
+      i += 2;
+      while (i < n) {
+        const c = input.charCodeAt(i);
+        i += 1;
+        if (c >= 0x40 && c <= 0x7e) break;
+      }
+      continue;
+    }
+
+    // OSC: ESC ] ... BEL (0x07) or ST (ESC \)
+    // Incomplete OSC (no terminator) only drops ESC] — never eats following text.
+    if (next === 0x5d /* ] */) {
+      const bodyStart = i + 2;
+      let j = bodyStart;
+      let terminatedAt = -1;
+      while (j < n) {
+        const c = input.charCodeAt(j);
+        if (c === 0x07) {
+          terminatedAt = j + 1;
+          break;
+        }
+        if (c === 0x1b) {
+          if (j + 1 < n && input.charCodeAt(j + 1) === 0x5c /* \ */) {
+            terminatedAt = j + 2; // ST
+          }
+          // Else another ESC: abort body; outer loop reprocesses from j.
+          break;
+        }
+        j += 1;
+      }
+      if (terminatedAt !== -1) {
+        i = terminatedAt;
+      } else if (j < n && input.charCodeAt(j) === 0x1b) {
+        i = j;
+      } else {
+        // EOF without terminator — keep body as plain text
+        i = bodyStart;
+      }
+      continue;
+    }
+
+    // 2-byte Fe sequences: ESC @ through ESC _
+    if (next >= 0x40 && next <= 0x5f) {
+      i += 2;
+      continue;
+    }
+
+    // Lone ESC — drop it
+    i += 1;
+  }
+
+  return out;
 }
 
 function normalizeLevel(raw: string): Exclude<LogLevel, "UNKNOWN"> {

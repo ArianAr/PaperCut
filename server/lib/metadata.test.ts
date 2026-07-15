@@ -10,6 +10,26 @@ describe("stripAnsi", () => {
   it("removes CSI color sequences", () => {
     expect(stripAnsi("\u001b[31merror\u001b[0m")).toBe("error");
   });
+
+  it("removes OSC sequences terminated by BEL or ST", () => {
+    expect(stripAnsi("\u001b]0;title\u0007plain")).toBe("plain");
+    expect(stripAnsi("\u001b]8;;https://ex\u001b\\link")).toBe("link");
+  });
+
+  it("removes two-byte Fe sequences and lone ESC", () => {
+    expect(stripAnsi("a\u001bMb")).toBe("ab");
+    expect(stripAnsi("x\u001by")).toBe("xy");
+  });
+
+  it("handles incomplete sequences without hanging", () => {
+    // Incomplete CSI: drop from ESC to end (no final byte)
+    expect(stripAnsi("\u001b[31")).toBe("");
+    // Incomplete OSC: drop ESC] only; keep following plain text
+    expect(stripAnsi("\u001b]noend")).toBe("noend");
+    // Many ESC] prefixes without terminators (former ReDoS shape)
+    const hostile = `${"\u001b]".repeat(200)}text`;
+    expect(stripAnsi(hostile)).toBe("text");
+  });
 });
 
 describe("detectLogLevel", () => {
