@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- GitHub Actions CI (`test`, `typecheck`, `lint`, `build`, aggregate `ci`) on PRs and `main`
+- Branch ruleset requiring the `ci` check before merging to `main`
+
 ### Planned
 
-- CI workflows for test/lint on pull requests
 - Unlock rate limiting for private pastes
 
 ## [0.2.1] - 2026-07-15
