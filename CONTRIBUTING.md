@@ -76,6 +76,21 @@ Pull requests and pushes to `main` run [.github/workflows/ci.yml](./.github/work
 
 Faulty PRs cannot merge while the required `ci` check is red (branch ruleset on `main`).
 
+### Labels
+
+Use labels so issues and PRs are easy to filter. Templates apply **type** labels automatically; maintainers add **area**, **priority**, and **status**.
+
+| Group | Examples | Use |
+|-------|----------|-----|
+| **Type** | `bug`, `enhancement`, `documentation`, `security`, `test`, `refactor`, `performance`, `breaking-change`, `question` | What kind of work |
+| **Area** | `area:cli`, `area:server`, `area:ui`, `area:api`, `area:docker`, `area:docs`, `area:ci` | Where in the monorepo |
+| **Status** | `needs-triage`, `needs-info`, `blocked`, `ready`, `in-progress` | Workflow state |
+| **Priority** | `priority:low` … `priority:critical` | Urgency |
+| **Deps / CI** | `dependencies`, `javascript`, `github-actions`, `ci`, `release` | Dependabot and tooling PRs |
+| **Community** | `good first issue`, `help wanted`, `duplicate`, `invalid`, `wontfix` | Contribution routing |
+
+New bug/feature issues get `needs-triage` until a maintainer reviews them.
+
 ### Commit messages
 
 Use concise, imperative subjects:
