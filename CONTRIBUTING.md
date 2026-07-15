@@ -110,7 +110,7 @@ test(api): cover password unlock cookie
 ### Pull requests
 
 - Describe **what** changed and **why**.
-- Link related issues (`Fixes #123`).
+- Link related issues (`Closes #N` or `Fixes #N`; either auto-closes the issue on merge).
 - Note any migration or env var changes.
 - Keep the PR reviewable: one logical feature or fix when practical.
 - Ensure CI (when configured) and local tests pass.
