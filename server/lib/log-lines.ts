@@ -144,6 +144,15 @@ export function filterLogLines(
   );
 }
 
+/**
+ * Join visible lines for download/export.
+ * Uses original `raw` (keeps ANSI); no trailing newline when empty or single empty line set.
+ */
+export function joinLinesForExport(lines: readonly ParsedLogLine[]): string {
+  if (lines.length === 0) return "";
+  return lines.map((line) => line.raw).join("\n");
+}
+
 export interface LineSelection {
   start: number; // 1-based inclusive
   end: number; // 1-based inclusive

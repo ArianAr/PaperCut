@@ -4,6 +4,7 @@ import {
   filterLogLines,
   formatLineHash,
   isLineSelected,
+  joinLinesForExport,
   parseLineHash,
   parseLogLines,
   parseSearchQuery,
@@ -64,6 +65,19 @@ describe("parseSearchQuery / filterLogLines", () => {
     expect(q.mode).toBe("regex");
     expect(q.regex).toBeNull();
     expect(q.error).toBeTruthy();
+  });
+
+  it("joinLinesForExport joins visible raw lines", () => {
+    expect(joinLinesForExport([])).toBe("");
+    const filtered = filterLogLines(
+      lines,
+      defaultLevelFilters(),
+      parseSearchQuery("beta"),
+    );
+    expect(joinLinesForExport(filtered)).toBe("[ERROR] beta");
+    expect(joinLinesForExport(lines)).toBe(
+      ["[INFO] alpha", "[ERROR] beta", "gamma noise"].join("\n"),
+    );
   });
 });
 

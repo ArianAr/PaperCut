@@ -81,7 +81,7 @@ Focus: log analysis depth.
 | 1.2.3 | **Multi-file or multi-paste compare** (side-by-side) | ui, api | Optional second paste id |
 | 1.2.4 | **Custom highlight rules** (user regex → color) | ui | Per-browser config |
 | 1.2.5 | **Timeline scrubber** for timestamped logs | ui | Detect common timestamp formats |
-| 1.2.6 | **Download filtered view** (not only raw) | ui | Export what you see |
+| 1.2.6 | **Download filtered view** (not only raw) | ui | ✅ Done (export visible lines) |
 
 ---
 

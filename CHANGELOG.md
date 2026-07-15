@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Opt-in process metrics (`PAPERCUT_METRICS=1`) — `GET /api/metrics` counters only (`pastes_created`, `unlocks_ok`, `rate_limited`); disabled by default; no content/IP logging
 - Log canvas **wrap / no-wrap** toggle (dense horizontal scroll), sticky line-number gutter, preference in `localStorage`
 - Log canvas **line pins / bookmarks** (per-paste `localStorage`, gutter star + sidebar jump list)
+- Log canvas **download filtered / visible lines** (`paste-<id>-filtered.log`)
 
 ### Fixed
 
