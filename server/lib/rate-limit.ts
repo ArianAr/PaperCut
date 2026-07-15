@@ -1,6 +1,6 @@
 /**
- * Simple in-memory sliding-window rate limiter.
- * Suitable for single-node / Docker deploys. Keys are never written to logs.
+ * Sliding-window rate limiter (in-memory) with optional Redis fixed-window backend.
+ * Keys are never written to application logs.
  */
 
 import { getTrustedProxyHops } from "./env";
@@ -20,6 +20,8 @@ export interface RateLimiterOptions {
   /** Optional clock for tests */
   now?: () => number;
 }
+
+export type RateLimitScope = "create" | "unlock";
 
 export class RateLimiter {
   private readonly hits = new Map<string, number[]>();
@@ -84,30 +86,115 @@ export class RateLimiter {
 const globalForLimiters = globalThis as unknown as {
   __pcUnlockLimiter?: RateLimiter;
   __pcCreateLimiter?: RateLimiter;
+  __pcRedisClient?: import("redis").RedisClientType;
+  __pcRedisConnect?: Promise<import("redis").RedisClientType | null>;
 };
 
-export function getUnlockRateLimiter(): RateLimiter {
-  if (!globalForLimiters.__pcUnlockLimiter) {
-    globalForLimiters.__pcUnlockLimiter = new RateLimiter({
+function scopeLimits(scope: RateLimitScope): { limit: number; windowMs: number } {
+  if (scope === "unlock") {
+    return {
       limit: Number.parseInt(process.env.UNLOCK_RATE_LIMIT ?? "10", 10) || 10,
       windowMs:
         Number.parseInt(process.env.UNLOCK_RATE_WINDOW_MS ?? "600000", 10) ||
         600_000,
-    });
+    };
+  }
+  return {
+    limit: Number.parseInt(process.env.CREATE_RATE_LIMIT ?? "60", 10) || 60,
+    windowMs:
+      Number.parseInt(process.env.CREATE_RATE_WINDOW_MS ?? "600000", 10) ||
+      600_000,
+  };
+}
+
+export function getUnlockRateLimiter(): RateLimiter {
+  if (!globalForLimiters.__pcUnlockLimiter) {
+    const { limit, windowMs } = scopeLimits("unlock");
+    globalForLimiters.__pcUnlockLimiter = new RateLimiter({ limit, windowMs });
   }
   return globalForLimiters.__pcUnlockLimiter;
 }
 
 export function getCreateRateLimiter(): RateLimiter {
   if (!globalForLimiters.__pcCreateLimiter) {
-    globalForLimiters.__pcCreateLimiter = new RateLimiter({
-      limit: Number.parseInt(process.env.CREATE_RATE_LIMIT ?? "60", 10) || 60,
-      windowMs:
-        Number.parseInt(process.env.CREATE_RATE_WINDOW_MS ?? "600000", 10) ||
-        600_000,
-    });
+    const { limit, windowMs } = scopeLimits("create");
+    globalForLimiters.__pcCreateLimiter = new RateLimiter({ limit, windowMs });
   }
   return globalForLimiters.__pcCreateLimiter;
+}
+
+function memoryAttempt(scope: RateLimitScope, key: string): RateLimitResult {
+  const limiter =
+    scope === "unlock" ? getUnlockRateLimiter() : getCreateRateLimiter();
+  return limiter.attempt(key);
+}
+
+async function getRedisClient(): Promise<import("redis").RedisClientType | null> {
+  const url = process.env.REDIS_URL?.trim();
+  if (!url) return null;
+
+  if (globalForLimiters.__pcRedisClient?.isOpen) {
+    return globalForLimiters.__pcRedisClient;
+  }
+
+  if (!globalForLimiters.__pcRedisConnect) {
+    globalForLimiters.__pcRedisConnect = (async () => {
+      try {
+        const { createClient } = await import("redis");
+        const client = createClient({ url });
+        client.on("error", () => {
+          /* connection errors fall back to memory on next call */
+        });
+        await client.connect();
+        globalForLimiters.__pcRedisClient =
+          client as import("redis").RedisClientType;
+        return globalForLimiters.__pcRedisClient;
+      } catch {
+        return null;
+      }
+    })();
+  }
+
+  return globalForLimiters.__pcRedisConnect;
+}
+
+/**
+ * Fixed-window counter in Redis (multi-instance safe).
+ * Falls back to in-memory sliding window when REDIS_URL is unset or Redis fails.
+ */
+export async function checkRateLimit(
+  scope: RateLimitScope,
+  key: string,
+): Promise<RateLimitResult> {
+  const { limit, windowMs } = scopeLimits(scope);
+  const redisKey = `papercut:rl:${scope}:${key}`;
+
+  try {
+    const client = await getRedisClient();
+    if (client?.isOpen) {
+      const n = await client.incr(redisKey);
+      if (n === 1) {
+        await client.pExpire(redisKey, windowMs);
+      }
+      if (n > limit) {
+        const ttl = await client.pTTL(redisKey);
+        return {
+          allowed: false,
+          remaining: 0,
+          retryAfterSec: Math.max(1, Math.ceil((ttl > 0 ? ttl : windowMs) / 1000)),
+        };
+      }
+      return {
+        allowed: true,
+        remaining: Math.max(0, limit - n),
+        retryAfterSec: 0,
+      };
+    }
+  } catch {
+    // fall through
+  }
+
+  return memoryAttempt(scope, key);
 }
 
 /**

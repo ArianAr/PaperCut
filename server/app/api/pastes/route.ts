@@ -4,9 +4,10 @@ import { getDb } from "@/lib/db";
 import { recordMetric } from "@/lib/metrics";
 import { createPaste } from "@/lib/paste";
 import {
+  checkRateLimit,
   clientKeyFromRequest,
-  getCreateRateLimiter,
 } from "@/lib/rate-limit";
+import { getMaxPasteSize } from "@/lib/env";
 import { buildPasteUrl } from "@/lib/urls";
 
 export const runtime = "nodejs";
@@ -17,8 +18,9 @@ interface CreateBody {
   password?: unknown;
 }
 
-export async function POST(request: Request) {
-  const rate = getCreateRateLimiter().attempt(
+async function rateLimitCreate(request: Request) {
+  const rate = await checkRateLimit(
+    "create",
     `create:${clientKeyFromRequest(request)}`,
   );
   if (!rate.allowed) {
@@ -30,6 +32,62 @@ export async function POST(request: Request) {
         headers: { "Retry-After": String(rate.retryAfterSec) },
       },
     );
+  }
+  return null;
+}
+
+function createResponse(
+  request: Request,
+  result: ReturnType<typeof createPaste>,
+) {
+  if (!result.ok) {
+    return NextResponse.json({ error: result.error }, { status: result.status });
+  }
+  recordMetric("pastes_created");
+  const url = buildPasteUrl(result.id, request.url);
+  return NextResponse.json(
+    {
+      id: result.id,
+      url,
+      expiresAt: result.expiresAt,
+      metadata: result.metadata,
+    },
+    { status: 201 },
+  );
+}
+
+/**
+ * Create a paste.
+ * - `application/json` — classic `{ content, expire?, password? }`
+ * - `text/plain` (or octet-stream) — stream body as content; optional headers
+ *   `X-PaperCut-Expire`, `X-PaperCut-Password` for large stdin without JSON wrap
+ */
+export async function POST(request: Request) {
+  const limited = await rateLimitCreate(request);
+  if (limited) return limited;
+
+  const contentType = request.headers.get("content-type") ?? "";
+  const db = getDb();
+  purgeExpiredPastes(db);
+
+  // Streaming / raw body path (CLI large stdin)
+  if (
+    contentType.includes("text/plain") ||
+    contentType.includes("application/octet-stream")
+  ) {
+    const max = getMaxPasteSize();
+    const buf = await readBodyWithLimit(request, max);
+    if (!buf.ok) {
+      return NextResponse.json({ error: buf.error }, { status: buf.status });
+    }
+    const expire = request.headers.get("x-papercut-expire") ?? undefined;
+    const password = request.headers.get("x-papercut-password") ?? undefined;
+    const result = createPaste(db, {
+      content: buf.text,
+      expire: expire || undefined,
+      password: password || undefined,
+    });
+    return createResponse(request, result);
   }
 
   let body: CreateBody;
@@ -60,29 +118,65 @@ export async function POST(request: Request) {
     );
   }
 
-  const db = getDb();
-  purgeExpiredPastes(db);
-
   const result = createPaste(db, {
     content: body.content,
     expire: body.expire as string | undefined,
     password: body.password as string | undefined,
   });
 
-  if (!result.ok) {
-    return NextResponse.json({ error: result.error }, { status: result.status });
+  return createResponse(request, result);
+}
+
+async function readBodyWithLimit(
+  request: Request,
+  maxBytes: number,
+): Promise<
+  | { ok: true; text: string }
+  | { ok: false; status: number; error: string }
+> {
+  const cl = request.headers.get("content-length");
+  if (cl) {
+    const n = Number.parseInt(cl, 10);
+    if (Number.isFinite(n) && n > maxBytes) {
+      return {
+        ok: false,
+        status: 413,
+        error: `content exceeds MAX_PASTE_SIZE (${maxBytes} bytes)`,
+      };
+    }
   }
 
-  recordMetric("pastes_created");
-  const url = buildPasteUrl(result.id, request.url);
+  if (!request.body) {
+    return { ok: true, text: "" };
+  }
 
-  return NextResponse.json(
-    {
-      id: result.id,
-      url,
-      expiresAt: result.expiresAt,
-      metadata: result.metadata,
-    },
-    { status: 201 },
-  );
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (!value) continue;
+    total += value.byteLength;
+    if (total > maxBytes) {
+      try {
+        await reader.cancel();
+      } catch {
+        /* ignore */
+      }
+      return {
+        ok: false,
+        status: 413,
+        error: `content exceeds MAX_PASTE_SIZE (${maxBytes} bytes)`,
+      };
+    }
+    chunks.push(value);
+  }
+  const merged = new Uint8Array(total);
+  let offset = 0;
+  for (const c of chunks) {
+    merged.set(c, offset);
+    offset += c.byteLength;
+  }
+  return { ok: true, text: new TextDecoder("utf-8").decode(merged) };
 }

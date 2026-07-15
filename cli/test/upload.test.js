@@ -75,4 +75,37 @@ describe("uploadPaste", () => {
       /missing url\/id/,
     );
   });
+
+  it("posts text/plain stream with papercut headers", async () => {
+    /** @type {any} */
+    let captured;
+    const fetchImpl = mock.fn(async (url, init) => {
+      captured = { url, init };
+      return {
+        ok: true,
+        status: 201,
+        text: async () =>
+          JSON.stringify({
+            id: "streamid0001",
+            url: "http://localhost:3000/paste/streamid0001",
+            expiresAt: null,
+          }),
+      };
+    });
+
+    const streamBody = { fake: "readable" };
+    await uploadPaste({
+      baseUrl: "http://localhost:3000",
+      streamBody,
+      expire: "1d",
+      password: "pw",
+      fetchImpl,
+    });
+
+    assert.equal(captured.init.headers["Content-Type"], "text/plain; charset=utf-8");
+    assert.equal(captured.init.headers["X-PaperCut-Expire"], "1d");
+    assert.equal(captured.init.headers["X-PaperCut-Password"], "pw");
+    assert.equal(captured.init.body, streamBody);
+    assert.equal(captured.init.duplex, "half");
+  });
 });

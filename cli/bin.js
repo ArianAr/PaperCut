@@ -220,6 +220,21 @@ function printCard(url, meta) {
  * @param {string} [opts.password]
  * @param {typeof fetch} [opts.fetchImpl]
  */
+/**
+ * Upload paste content.
+ * Prefer text/plain streaming body (lower memory) when `streamBody` is set;
+ * otherwise classic JSON `{ content, expire?, password? }`.
+ *
+ * @param {{
+ *   baseUrl: string,
+ *   content?: string,
+ *   streamBody?: import('node:stream').Readable | ReadableStream,
+ *   contentLength?: number,
+ *   expire?: string,
+ *   password?: string,
+ *   fetchImpl?: typeof fetch,
+ * }} opts
+ */
 async function uploadPaste(opts) {
   const fetchImpl = opts.fetchImpl || globalThis.fetch;
   if (typeof fetchImpl !== "function") {
@@ -227,15 +242,36 @@ async function uploadPaste(opts) {
   }
 
   /** @type {Record<string, string>} */
-  const body = { content: opts.content };
-  if (opts.expire) body.expire = opts.expire;
-  if (opts.password) body.password = opts.password;
+  const headers = { Accept: "application/json" };
+  /** @type {BodyInit} */
+  let body;
 
-  const res = await fetchImpl(`${opts.baseUrl}/api/pastes`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify(body),
-  });
+  if (opts.streamBody) {
+    headers["Content-Type"] = "text/plain; charset=utf-8";
+    if (opts.expire) headers["X-PaperCut-Expire"] = opts.expire;
+    if (opts.password) headers["X-PaperCut-Password"] = opts.password;
+    if (opts.contentLength != null) {
+      headers["Content-Length"] = String(opts.contentLength);
+    }
+    // Node fetch accepts Node Readable / web streams as duplex body
+    body = /** @type {any} */ (opts.streamBody);
+  } else {
+    headers["Content-Type"] = "application/json";
+    /** @type {Record<string, string>} */
+    const json = { content: opts.content || "" };
+    if (opts.expire) json.expire = opts.expire;
+    if (opts.password) json.password = opts.password;
+    body = JSON.stringify(json);
+  }
+
+  /** @type {RequestInit} */
+  const init = { method: "POST", headers, body };
+  if (opts.streamBody) {
+    // Required by Node undici when body is a stream
+    /** @type {any} */ (init).duplex = "half";
+  }
+
+  const res = await fetchImpl(`${opts.baseUrl}/api/pastes`, init);
 
   /** @type {any} */
   let data = null;
@@ -281,15 +317,10 @@ async function main() {
     exit(1);
   }
 
-  const content = await readStdin();
-  if (!content || content.length === 0) {
-    stderr.write("Error: empty input\n");
-    exit(1);
-  }
-
   /** @type {string | undefined} */
   let password;
   if (opts.private) {
+    // Must read password before consuming stdin stream for --private
     password = env.PAPERCUT_PASSWORD || (await promptHidden("Paste password: "));
     if (!password) {
       stderr.write("Error: password must not be empty\n");
@@ -298,9 +329,10 @@ async function main() {
   }
 
   try {
+    // Stream stdin as text/plain (no full JSON stringify of large logs)
     const data = await uploadPaste({
       baseUrl: opts.url,
-      content,
+      streamBody: stdin,
       expire: opts.expire,
       password,
     });
