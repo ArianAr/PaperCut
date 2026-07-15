@@ -79,13 +79,24 @@ some-command 2>&1 | papercut --url https://papercut.example.com
 ## Docker (self-host)
 
 ```bash
+export PASTE_AUTH_SECRET="$(openssl rand -hex 32)"
+export PAPERCUT_PUBLIC_URL="http://localhost:3000"
 docker compose up --build -d
 ```
 
 - App: `http://localhost:3000`
-- SQLite data: Docker volume / bind mount under `./data` (see `docker-compose.yml`)
+- SQLite: Docker volume `papercut-data` (`DATABASE_PATH=/data/papercut.db`)
 
-Set `PAPERCUT_PUBLIC_URL` and `PASTE_AUTH_SECRET` for production.
+Or build the image directly:
+
+```bash
+docker build -t papercut .
+docker run --rm -p 3000:3000 \
+  -e PASTE_AUTH_SECRET="$PASTE_AUTH_SECRET" \
+  -e PAPERCUT_PUBLIC_URL=http://localhost:3000 \
+  -v papercut-data:/data \
+  papercut
+```
 
 ## Environment variables
 
