@@ -38,6 +38,7 @@ Focus: production operators and contributors.
 | 1.1.4 | **Structured app metrics (opt-in)** | server | Counters only; no content; disabled by default |
 | 1.1.5 | **Graceful DB backup note** + `sqlite3 .backup` recipe | docker, docs | Operator guide |
 | 1.1.6 | **Dark/light toggle** (still VS Code aesthetic) | ui | Preference in `localStorage` |
+| 1.1.7 | **Reverse proxy + HTTPS docs** (nginx, Caddy, Traefik) | docker, docs | Domain, TLS, `PAPERCUT_PUBLIC_URL`, trusted `X-Forwarded-*` |
 
 ---
 
@@ -67,6 +68,17 @@ Focus: multi-instance self-host without losing privacy defaults.
 | 1.3.3 | **Streaming upload** (chunked stdin) | cli, api | Very large builds |
 | 1.3.4 | **Background expire sweeper** (cron process) | server | Complement purge-on-read |
 | 1.3.5 | **Read replicas / RO mode** | server | Optional |
+| 1.3.6 | **Optional reverse-proxy stack** (compose profiles) | docker | nginx / Caddy / Traefik + ACME for domain + HTTPS; app still plain HTTP behind proxy |
+| 1.3.7 | **Proxy-aware runtime** | server | Document/trust hop config for rate limits & secure cookies behind TLS terminators |
+
+### Reverse proxy & HTTPS (intent)
+
+Self-hosters should be able to put PaperCut on a **custom domain with HTTPS** without changing the core app:
+
+1. **v1.1.7 (docs first):** sample configs for **nginx**, **Caddy**, and **Traefik** — terminate TLS, proxy to `papercut:3000`, set `PAPERCUT_PUBLIC_URL=https://paste.example.com`, forward `X-Forwarded-For` / `X-Forwarded-Proto` for rate limits and secure cookies.
+2. **v1.3.6–1.3.7 (optional compose):** `docker compose --profile proxy` (or similar) that brings up a reverse proxy with automatic certificates (e.g. Caddy/Traefik ACME), still keeping the Node app on the internal network only.
+
+Out of scope for core: baking a full web server *into* the PaperCut container; TLS belongs at the edge.
 
 ---
 

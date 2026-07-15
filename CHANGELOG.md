@@ -10,10 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - [ROADMAP.md](./ROADMAP.md) — post-1.0 feature plan (v1.1–v2.0)
+- Roadmap: reverse proxy / domain / HTTPS (nginx, Caddy, Traefik) in v1.1 docs + v1.3 optional compose
 
 ### Planned
 
-See [ROADMAP.md](./ROADMAP.md) (e.g. multi-instance rate limiting, canvas power tools, Next 16 migration).
+See [ROADMAP.md](./ROADMAP.md) (e.g. multi-instance rate limiting, canvas power tools, reverse proxy + HTTPS, Next 16 migration).
 
 ## [1.0.0] - 2026-07-15
 
