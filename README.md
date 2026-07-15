@@ -144,7 +144,7 @@ Paste UI: `/paste/:id` (password gate when protected). Line deep links: `#L12`, 
 
 ## Status
 
-Current version: **0.2.1** (see [CHANGELOG](./CHANGELOG.md)). APIs and UI may change before 1.0.
+Current version: **1.0.0** (see [CHANGELOG](./CHANGELOG.md)). The HTTP API and CLI flags documented above follow **1.x** compatibility intent; minor UI polish may still land in patch/minor releases.
 
 ## License
 
