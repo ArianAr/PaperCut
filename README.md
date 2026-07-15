@@ -1,5 +1,7 @@
 # PaperCut
 
+[![CI](https://github.com/ArianAr/PaperCut/actions/workflows/ci.yml/badge.svg)](https://github.com/ArianAr/PaperCut/actions/workflows/ci.yml)
+
 **Interactive terminal pastebin and log analysis canvas.**
 
 Pipe any terminal output or log file to a self-hosted PaperCut instance and get a secure, shareable link. The result is not a static text dump—it is a developer-focused log canvas with ANSI colors, virtualized scrolling, log-level filters, JSON inspection, grep, and GitHub-style line links.

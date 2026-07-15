@@ -52,14 +52,29 @@ echo "hello from papercut" | pnpm cli --url http://localhost:3000
    ```
    Branch prefixes we use: `feat/`, `fix/`, `docs/`, `chore/`, `test/`.
 3. **Implement** with tests for behavior changes.
-4. **Run checks locally:**
+4. **Run checks locally** (same as CI):
    ```bash
    pnpm test
    pnpm lint
    pnpm typecheck
+   pnpm build
    ```
 5. **Commit** with clear messages (see below).
 6. **Push and open a PR** against `main`.
+
+### Continuous integration
+
+Pull requests and pushes to `main` run [.github/workflows/ci.yml](./.github/workflows/ci.yml):
+
+| Job | What |
+|-----|------|
+| `test` | `pnpm test` (server Vitest + CLI `node:test`) |
+| `typecheck` | `pnpm typecheck` |
+| `lint` | `pnpm lint` |
+| `build` | `pnpm build` |
+| `ci` | Aggregate gate — **required** to merge into `main` |
+
+Faulty PRs cannot merge while the required `ci` check is red (branch ruleset on `main`).
 
 ### Commit messages
 
