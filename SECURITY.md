@@ -6,17 +6,18 @@ Security fixes are provided for the versions below. Always run the latest patch 
 
 | Version | Supported          | Notes |
 | ------- | ------------------ | ----- |
-| 0.2.x   | :white_check_mark: | Current release line (latest: **0.2.1**) — [CHANGELOG](./CHANGELOG.md) |
-| 0.1.x   | :x:                | Superseded by 0.2.x; no further fixes |
+| 1.0.x   | :white_check_mark: | Current stable line (latest: **1.0.0**) — [CHANGELOG](./CHANGELOG.md) |
+| 0.2.x   | :x:                | Superseded by 1.0.x |
+| 0.1.x   | :x:                | Superseded |
 | &lt; 0.1  | :x:                | Pre-release / untagged |
 
-Until a stable **1.0** release:
+Policy:
 
-- Fixes land on `main` first, then ship in the next **semver** tag.
-- Only the latest **0.x** minor line is supported (currently **0.2.x**).
+- Fixes land on `main` first, then ship in the next **semver** tag on the supported line.
+- Only the latest **stable minor** is supported (currently **1.0.x**).
 - Upgrade by pulling the latest release tag or `main` and redeploying (Docker or Node).
 
-When reporting an issue, include the version from `package.json` / the Git tag (e.g. `v0.2.1`).
+When reporting an issue, include the version from `package.json` / the Git tag (e.g. `v1.0.0`).
 
 ## Reporting a vulnerability
 
@@ -32,7 +33,7 @@ Report privately using one of these channels:
 
 - Description of the issue and impact
 - Steps to reproduce (PoC)
-- **Affected version / Git tag** (e.g. `v0.2.0`) and commit if known
+- **Affected version / Git tag** (e.g. `v1.0.0`) and commit if known
 - Deployment mode (Docker / `pnpm start` / other)
 - Any suggested fix (optional)
 
@@ -54,6 +55,7 @@ In scope examples:
 - Remote code execution or path traversal on a self-hosted instance
 - Secret leakage (auth secrets, password hashes returned to clients)
 - Significant denial-of-service that is practical against default configuration
+- Bypassing create/unlock rate limits in a way that enables practical abuse on a default single-node deploy
 
 Out of scope examples:
 
@@ -62,6 +64,7 @@ Out of scope examples:
 - Missing security headers that do not lead to a concrete exploit on this app
 - Vulnerabilities only in third-party dependencies without a path to exploit PaperCut (please report those upstream; we still appreciate a heads-up)
 - Social engineering or phishing
+- Multi-instance rate-limit bypass when running more than one process without a shared store (documented limitation; single-node Docker is the supported default)
 
 ## Security-related product defaults
 
@@ -69,6 +72,7 @@ PaperCut is designed with developer privacy in mind:
 
 - **No analytics** and no intentional IP or body logging of paste content in application code
 - **Password-protected pastes** store a password hash only; content is not returned until unlock succeeds
+- **Rate limits** use in-memory counters keyed by client hints (e.g. `X-Forwarded-For`); keys are not written to application logs
 - **Self-hosting** is the primary deployment model—you control the data plane
 
 Sensitive logs or credentials should always use **private** (password-protected) pastes and short expiry when possible. A public paste ID is effectively a capability URL: anyone with the link can read a non-private paste.

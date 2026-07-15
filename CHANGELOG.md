@@ -7,10 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Planned
+
+- Multi-instance rate limiting (Redis) for horizontally scaled deploys
+
+## [1.0.0] - 2026-07-15
+
+First stable release. HTTP API paths and CLI flags in this version are covered by the 1.x compatibility intent documented in the README.
+
 ### Added
 
 - GitHub Actions CI (`test`, `typecheck`, `lint`, `build`, aggregate `ci`) on PRs and `main`
-- Branch ruleset requiring the `ci` check before merging to `main`
+- Branch protection / ruleset requiring the `ci` check before merging to `main`
 - In-memory rate limits for paste create and password unlock (429 + `Retry-After`)
 - Security headers (CSP, frame deny, nosniff, referrer policy) via Next config
 - `GET /api/health` readiness probe; Docker healthcheck uses it
@@ -18,15 +26,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `robots.txt` disallows crawlers on `/paste/` and `/api/`
 - Repo Dependabot config and issue/PR templates (CodeQL via GitHub default setup)
 - CLI `--version` / `-V`
+- Documented stable HTTP API table in README
 
 ### Security
 
 - Bump `drizzle-orm` to ≥0.45.2 (SQL identifier injection advisory)
 - Bump `postcss` to ≥8.5.10 (stringify XSS advisory)
 
-### Planned
+### Includes (from 0.x)
 
-- Multi-instance rate limiting (Redis) for horizontally scaled deploys
+- Zero-dependency CLI upload client
+- Next.js server with SQLite pastes, password protection, expiry
+- Interactive log canvas (ANSI, virtual scroll, filters, search, JSON, line links)
+- Docker multi-stage image and compose stack
 
 ## [0.2.1] - 2026-07-15
 
@@ -78,7 +90,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Links
 
-- [Unreleased]: https://github.com/ArianAr/PaperCut/compare/v0.2.1...HEAD
+- [Unreleased]: https://github.com/ArianAr/PaperCut/compare/v1.0.0...HEAD
+- [1.0.0]: https://github.com/ArianAr/PaperCut/compare/v0.2.1...v1.0.0
 - [0.2.1]: https://github.com/ArianAr/PaperCut/compare/v0.2.0...v0.2.1
 - [0.2.0]: https://github.com/ArianAr/PaperCut/compare/v0.1.0...v0.2.0
 - [0.1.0]: https://github.com/ArianAr/PaperCut/releases/tag/v0.1.0
