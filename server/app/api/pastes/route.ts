@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
+import { purgeExpiredPastes } from "@/lib/cleanup";
 import { getDb } from "@/lib/db";
 import { createPaste } from "@/lib/paste";
+import {
+  clientKeyFromRequest,
+  getCreateRateLimiter,
+} from "@/lib/rate-limit";
 import { buildPasteUrl } from "@/lib/urls";
 
 export const runtime = "nodejs";
@@ -12,6 +17,19 @@ interface CreateBody {
 }
 
 export async function POST(request: Request) {
+  const rate = getCreateRateLimiter().attempt(
+    `create:${clientKeyFromRequest(request)}`,
+  );
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: "Too many pastes created. Try again later." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(rate.retryAfterSec) },
+      },
+    );
+  }
+
   let body: CreateBody;
   try {
     body = (await request.json()) as CreateBody;
@@ -40,7 +58,10 @@ export async function POST(request: Request) {
     );
   }
 
-  const result = createPaste(getDb(), {
+  const db = getDb();
+  purgeExpiredPastes(db);
+
+  const result = createPaste(db, {
     content: body.content,
     expire: body.expire as string | undefined,
     password: body.password as string | undefined,

@@ -6,6 +6,10 @@ import {
 } from "@/lib/auth-cookie";
 import { getDb } from "@/lib/db";
 import { unlockPaste } from "@/lib/paste";
+import {
+  clientKeyFromRequest,
+  getUnlockRateLimiter,
+} from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -15,6 +19,19 @@ export async function POST(request: Request, context: RouteContext) {
   const { id } = await context.params;
   if (!id || id.length > 64) {
     return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+  }
+
+  // Key by paste + client so brute force is limited per paste without logging IPs
+  const rateKey = `unlock:${id}:${clientKeyFromRequest(request)}`;
+  const rate = getUnlockRateLimiter().attempt(rateKey);
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: "Too many unlock attempts. Try again later." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(rate.retryAfterSec) },
+      },
+    );
   }
 
   let body: { password?: unknown };

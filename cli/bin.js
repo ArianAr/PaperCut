@@ -12,8 +12,10 @@ const { stdin, stdout, stderr, exit, env, argv, platform } = require("node:proce
 
 const DEFAULT_URL = "http://localhost:3000";
 
+const CLI_VERSION = require("./package.json").version;
+
 function printHelp() {
-  stdout.write(`papercut — pipe terminal output to an interactive log canvas
+  stdout.write(`papercut ${CLI_VERSION} — pipe terminal output to an interactive log canvas
 
 Usage:
   <command> | papercut [options]
@@ -23,6 +25,7 @@ Options:
   -p, --private          Password-protect the paste
   --expire <time>        Auto-delete after duration (e.g. 30m, 1h, 1d, 7d)
   --url <base>           Server base URL (default: env PAPERCUT_URL or ${DEFAULT_URL})
+  -V, --version          Print version
   -h, --help             Show this help
 
 Environment:
@@ -38,12 +41,13 @@ Examples:
 
 /**
  * @param {string[]} args
- * @returns {{ help: boolean, private: boolean, expire?: string, url: string, errors: string[] }}
+ * @returns {{ help: boolean, version: boolean, private: boolean, expire?: string, url: string, errors: string[] }}
  */
 function parseArgs(args) {
-  /** @type {{ help: boolean, private: boolean, expire?: string, url: string, errors: string[] }} */
+  /** @type {{ help: boolean, version: boolean, private: boolean, expire?: string, url: string, errors: string[] }} */
   const opts = {
     help: false,
+    version: false,
     private: false,
     url: (env.PAPERCUT_URL || DEFAULT_URL).replace(/\/$/, ""),
     errors: [],
@@ -53,6 +57,8 @@ function parseArgs(args) {
     const arg = args[i];
     if (arg === "-h" || arg === "--help") {
       opts.help = true;
+    } else if (arg === "-V" || arg === "--version") {
+      opts.version = true;
     } else if (arg === "-p" || arg === "--private") {
       opts.private = true;
     } else if (arg === "--expire") {
@@ -258,6 +264,10 @@ async function main() {
     printHelp();
     exit(0);
   }
+  if (opts.version) {
+    stdout.write(`${CLI_VERSION}\n`);
+    exit(0);
+  }
   if (opts.errors.length) {
     for (const e of opts.errors) stderr.write(`Error: ${e}\n`);
     printHelp();
@@ -316,6 +326,7 @@ module.exports = {
   printCard,
   readStdin,
   DEFAULT_URL,
+  CLI_VERSION,
 };
 
 if (require.main === module) {

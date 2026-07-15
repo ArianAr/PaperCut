@@ -11,10 +11,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - GitHub Actions CI (`test`, `typecheck`, `lint`, `build`, aggregate `ci`) on PRs and `main`
 - Branch ruleset requiring the `ci` check before merging to `main`
+- In-memory rate limits for paste create and password unlock (429 + `Retry-After`)
+- Security headers (CSP, frame deny, nosniff, referrer policy) via Next config
+- `GET /api/health` readiness probe; Docker healthcheck uses it
+- Batch purge of expired pastes (`purgeExpiredPastes`)
+- `robots.txt` disallows crawlers on `/paste/` and `/api/`
+- Repo Dependabot config and issue/PR templates (CodeQL via GitHub default setup)
+- CLI `--version` / `-V`
+
+### Security
+
+- Bump `drizzle-orm` to ≥0.45.2 (SQL identifier injection advisory)
+- Bump `postcss` to ≥8.5.10 (stringify XSS advisory)
 
 ### Planned
 
-- Unlock rate limiting for private pastes
+- Multi-instance rate limiting (Redis) for horizontally scaled deploys
 
 ## [0.2.1] - 2026-07-15
 

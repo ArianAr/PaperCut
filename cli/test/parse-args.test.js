@@ -34,9 +34,11 @@ describe("parseArgs", () => {
     assert.equal(opts.url, "http://localhost:4000");
   });
 
-  it("sets help", () => {
+  it("sets help and version", () => {
     assert.equal(parseArgs(["--help"]).help, true);
     assert.equal(parseArgs(["-h"]).help, true);
+    assert.equal(parseArgs(["--version"]).version, true);
+    assert.equal(parseArgs(["-V"]).version, true);
   });
 
   it("records unknown args and missing values", () => {
