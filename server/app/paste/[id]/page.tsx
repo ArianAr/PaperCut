@@ -9,11 +9,23 @@ import { getPaste, getPasteLockInfo } from "@/lib/paste";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type PageProps = { params: Promise<{ id: string }> };
+type PageProps = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ compare?: string | string[] }>;
+};
 
-export default async function PastePage({ params }: PageProps) {
+export default async function PastePage({ params, searchParams }: PageProps) {
   const { id } = await params;
   if (!id || id.length > 64) notFound();
+
+  const sp = await searchParams;
+  const compareRaw = sp.compare;
+  const initialCompareId =
+    typeof compareRaw === "string"
+      ? compareRaw
+      : Array.isArray(compareRaw)
+        ? compareRaw[0]
+        : undefined;
 
   const cookieStore = await cookies();
   const token = cookieStore.get(authCookieName(id))?.value;
@@ -38,6 +50,7 @@ export default async function PastePage({ params }: PageProps) {
       metadata={paste.metadata}
       createdAt={paste.createdAt}
       expiresAt={paste.expiresAt}
+      initialCompareId={initialCompareId}
     />
   );
 }
