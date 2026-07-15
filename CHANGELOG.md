@@ -12,10 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GitHub Actions **Publish npm** workflow — auto-publish `papercut-cli` on GitHub Release via [npm trusted publishers](https://docs.npmjs.com/trusted-publishers) (OIDC; no long-lived token)
 - Light/dark theme toggle (VS Code–style palettes, `localStorage` persistence)
 - Roadmap: **dependency currency** policy (prefer latest packages + majors plan)
+- Opt-in process metrics (`PAPERCUT_METRICS=1`) — `GET /api/metrics` counters only (`pastes_created`, `unlocks_ok`, `rate_limited`); disabled by default; no content/IP logging
 
 ### Planned
 
-See [ROADMAP.md](./ROADMAP.md) (dependency updates, opt-in metrics, scale features, etc.).
+See [ROADMAP.md](./ROADMAP.md) (dependency updates, scale features, etc.).
 
 ## [1.1.0] - 2026-07-15
 

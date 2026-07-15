@@ -182,6 +182,7 @@ Configure Traefik entrypoints `web`/`websecure` and a Let's Encrypt certificate 
 | `PAPERCUT_PUBLIC_URL` | `https://paste.example.com` (no trailing slash) |
 | `PASTE_AUTH_SECRET` | Long random secret (required in production) |
 | `DATABASE_PATH` | e.g. `/data/papercut.db` |
+| `PAPERCUT_METRICS` | Optional: `1` to enable `GET /api/metrics` (counters only; off by default) |
 | Proxy headers | `X-Forwarded-For`, `X-Forwarded-Proto` |
 
 Firewall: expose **80/443** publicly; keep **3000** localhost-only or Docker-internal when using a proxy.

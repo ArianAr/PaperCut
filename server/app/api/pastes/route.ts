@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { purgeExpiredPastes } from "@/lib/cleanup";
 import { getDb } from "@/lib/db";
+import { recordMetric } from "@/lib/metrics";
 import { createPaste } from "@/lib/paste";
 import {
   clientKeyFromRequest,
@@ -21,6 +22,7 @@ export async function POST(request: Request) {
     `create:${clientKeyFromRequest(request)}`,
   );
   if (!rate.allowed) {
+    recordMetric("rate_limited");
     return NextResponse.json(
       { error: "Too many pastes created. Try again later." },
       {
@@ -71,6 +73,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: result.error }, { status: result.status });
   }
 
+  recordMetric("pastes_created");
   const url = buildPasteUrl(result.id, request.url);
 
   return NextResponse.json(

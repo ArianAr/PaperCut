@@ -150,6 +150,7 @@ See [`.env.example`](./.env.example).
 | `UNLOCK_RATE_WINDOW_MS` | Unlock window (ms) | `600000` |
 | `CREATE_RATE_LIMIT` | Creates / window | `60` |
 | `CREATE_RATE_WINDOW_MS` | Create window (ms) | `600000` |
+| `PAPERCUT_METRICS` | Enable `GET /api/metrics` (`1`/`true`/`yes`/`on`) | off |
 
 ---
 
@@ -161,6 +162,7 @@ See [`.env.example`](./.env.example).
 | `GET` | `/api/pastes/:id` | Paste body or `401` + `{ locked: true }` |
 | `POST` | `/api/pastes/:id/unlock` | `{ password }` → httpOnly unlock cookie |
 | `GET` | `/api/health` | Liveness/readiness (+ expired purge) |
+| `GET` | `/api/metrics` | Opt-in counters (`PAPERCUT_METRICS`); **404** when disabled |
 
 UI: `/paste/:id` · deep links `#L12`, `#L12-L20`.
 
@@ -171,6 +173,7 @@ UI: `/paste/:id` · deep links `#L12`, `#L12-L20`.
 - No analytics SDKs in application code
 - Paste bodies and client IPs are **not** intentionally logged
 - Rate limiting may use `X-Forwarded-For` **in memory only**
+- Optional metrics (`PAPERCUT_METRICS`) expose **counters only** (creates, successful unlocks, 429s) — never content or IPs
 - Public pastes are **capability URLs** — use `--private` for sensitive data
 
 ---

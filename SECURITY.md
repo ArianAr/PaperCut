@@ -74,6 +74,7 @@ PaperCut is designed with developer privacy in mind:
 - **No analytics** and no intentional IP or body logging of paste content in application code
 - **Password-protected pastes** store a password hash only; content is not returned until unlock succeeds
 - **Rate limits** use in-memory counters keyed by client hints (e.g. `X-Forwarded-For`); keys are not written to application logs
+- **Opt-in metrics** (`PAPERCUT_METRICS`) expose process counters only (paste creates, successful unlocks, rate-limit 429s) via `GET /api/metrics`; disabled by default; never includes paste bodies, IPs, or rate-limit keys
 - **Self-hosting** is the primary deployment model—you control the data plane
 
 Sensitive logs or credentials should always use **private** (password-protected) pastes and short expiry when possible. A public paste ID is effectively a capability URL: anyone with the link can read a non-private paste.
