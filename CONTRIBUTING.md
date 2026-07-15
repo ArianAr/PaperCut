@@ -148,7 +148,8 @@ Every **semver release** (Git tag + GitHub Release) must update the repo in the 
 3. **Security policy** — Update the supported-versions table in [SECURITY.md](./SECURITY.md) (current line supported; older minors unsupported unless explicitly maintained).
 4. **Tests** — `pnpm test` (and any package-specific suites) green on the release commit.
 5. **Tag & release** — Create an annotated tag `vX.Y.Z` on `main` and a GitHub Release whose body matches the CHANGELOG section (or links to it).
-6. **PR hygiene** — Prefer a dedicated `chore/release-X.Y.Z` PR (or include the version/changelog/security updates in the final feature PR before tagging).
+6. **npm** — Publishing **`papercut-cli`** is automatic on Release publish via [npm trusted publishers](https://docs.npmjs.com/trusted-publishers) (OIDC, workflow `publish-npm.yml`). One-time config on npmjs.com is required — see [cli/PUBLISH.md](./cli/PUBLISH.md). The release tag **must** match `cli/package.json` version.
+7. **PR hygiene** — Prefer a dedicated `chore/release-X.Y.Z` PR (or include the version/changelog/security updates in the final feature PR before tagging).
 
 ### Versioning hints
 

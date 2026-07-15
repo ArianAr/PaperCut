@@ -1,0 +1,81 @@
+# Publish papercut-cli to npm when a GitHub Release is published.
+# Auth: npm Trusted Publisher (OIDC) — no long-lived NPM_TOKEN.
+# Setup: https://www.npmjs.com/package/papercut-cli → Settings → Trusted Publisher
+#   User: ArianAr | Repo: PaperCut | Workflow: publish-npm.yml | Allow: npm publish
+# Docs: https://docs.npmjs.com/trusted-publishers
+name: Publish npm
+
+on:
+  release:
+    types: [published]
+
+concurrency:
+  group: publish-npm-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write # Required for npm OIDC trusted publishing + provenance
+
+jobs:
+  publish:
+    name: publish-papercut-cli
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: cli
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # Trusted publishing needs npm CLI ≥ 11.5.1 and Node ≥ 22.14
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      - name: Ensure modern npm CLI
+        run: npm install -g npm@latest
+
+      - name: Assert release tag matches package version
+        working-directory: .
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG="$(node -p "require('./cli/package.json').version")"
+          echo "release_tag=${TAG}"
+          echo "package_version=${PKG}"
+          if [ "${TAG}" != "${PKG}" ]; then
+            echo "::error::GitHub release tag v${TAG} does not match cli/package.json version ${PKG}. Bump versions before releasing."
+            exit 1
+          fi
+
+      - name: Skip if version already on npm
+        id: existing
+        run: |
+          set -euo pipefail
+          VER="$(node -p "require('./package.json').version")"
+          if npm view "papercut-cli@${VER}" version >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "papercut-cli@${VER} is already published — skipping."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run CLI unit tests
+        if: steps.existing.outputs.exists != 'true'
+        run: npm test
+
+      - name: Pack dry-run
+        if: steps.existing.outputs.exists != 'true'
+        run: npm pack --dry-run
+
+      # OIDC trusted publishing — no NODE_AUTH_TOKEN / NPM_TOKEN.
+      # Provenance is generated automatically with trusted publishers.
+      - name: Publish to npm (trusted publisher / OIDC)
+        if: steps.existing.outputs.exists != 'true'
+        run: npm publish --access public

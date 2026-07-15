@@ -4,51 +4,80 @@ This package lives in `cli/` of the monorepo and is published as **`papercut-cli
 
 After install, users get binaries **`papercut`** and **`papercut-cli`**.
 
-## Preconditions
+## Automatic publish (preferred) — Trusted Publisher (OIDC)
 
-- [ ] Version in `cli/package.json` matches the release you are shipping
+On every **GitHub Release** (`published`), workflow [`.github/workflows/publish-npm.yml`](../.github/workflows/publish-npm.yml) publishes `cli/` using [npm trusted publishers](https://docs.npmjs.com/trusted-publishers) (OpenID Connect). **No long-lived npm token** is stored in GitHub.
+
+### One-time setup on npmjs.com
+
+1. Open **[papercut-cli → Settings → Trusted Publisher](https://www.npmjs.com/package/papercut-cli/access)** (or package Settings → Trusted publishing).
+2. Choose **GitHub Actions** and set:
+
+   | Field | Value |
+   |-------|--------|
+   | Organization or user | `ArianAr` |
+   | Repository | `PaperCut` |
+   | Workflow filename | `publish-npm.yml` (filename only, not full path) |
+   | Environment name | *(leave empty unless you add a GitHub Environment)* |
+   | Allowed actions | **`npm publish`** (at least) |
+
+3. Save. npm does **not** validate the config until the first publish — double-check spelling.
+
+Optional hardening after OIDC works: package **Settings → Publishing access** → prefer requiring 2FA and restricting classic tokens (trusted publishing still works).
+
+### Release flow
+
+1. Bump versions in lockstep: root, `cli/package.json`, `server/package.json`
+2. Update CHANGELOG + SECURITY (see [CONTRIBUTING.md](../CONTRIBUTING.md#releasing))
+3. Merge the release PR to `main`
+4. Create annotated tag + GitHub Release: `vX.Y.Z` (tag must match `cli` version)
+5. Actions runs **Publish npm** → OIDC publish of `papercut-cli@X.Y.Z` (provenance included automatically)
+
+Requirements (enforced by the workflow):
+
+- Node ≥ 22.14 / npm ≥ 11.5.1 (workflow upgrades npm)
+- Public GitHub repo (for provenance)
+- Workflow file name exactly as configured on npm
+
+## Manual dry-run / local publish
+
+### Preconditions
+
+- [ ] Version in `cli/package.json` matches the release tag
 - [ ] `pnpm --filter papercut-cli test` passes
-- [ ] `pnpm --filter papercut-cli pack:dry-run` lists only intended files (`bin.js`, `README.md`, `LICENSE`)
-- [ ] You are logged in: `npm whoami` (account with publish rights on `papercut-cli`)
-- [ ] CHANGELOG / GitHub release notes mention the CLI if user-facing
+- [ ] `pnpm --filter papercut-cli pack:dry-run` lists only `bin.js`, `README.md`, `LICENSE`
+- [ ] CHANGELOG / release notes mention the CLI if user-facing
 
-## Dry-run (local or CI)
+### Dry-run
 
 ```bash
 cd cli
 npm pack --dry-run
-# or from monorepo root:
+# or:
 pnpm --filter papercut-cli pack:dry-run
 ```
 
-Confirm the tarball includes:
+CI also runs pack dry-run on every PR (job `cli-pack`).
 
-- `bin.js` (entries for `papercut` and `papercut-cli`)
-- `README.md`
-- `LICENSE` (GPL-3.0-only)
-- **No** `test/`, monorepo root, or `node_modules`
-
-CI runs `pnpm --filter papercut-cli pack:dry-run` on every PR (job `cli-pack`).
-
-## Publish
+### Manual publish (fallback)
 
 ```bash
 cd cli
 npm publish --access public
 ```
 
-## After publish
+(Interactive 2FA / security key may be required for human sessions.)
+
+### After publish
 
 ```bash
 npx papercut-cli@latest --version
-npx papercut-cli@latest --help
+npm view papercut-cli version
 ```
-
-Tag / GitHub Release should match the published version when this is part of a full PaperCut release.
 
 ## Do not
 
 - Publish the monorepo **root** package (`"private": true`)
 - Publish `@papercut/server` (private Next app)
 - Use the name `papercut` on npm (already taken)
-- Commit `.npmrc` with tokens
+- Commit `.npmrc` or long-lived publish tokens (prefer trusted publishing)
