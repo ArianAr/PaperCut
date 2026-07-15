@@ -23,12 +23,45 @@ export function getPublicUrl(): string | undefined {
   return url ? url.replace(/\/$/, "") : undefined;
 }
 
+/** Known placeholders that must never be used as production unlock secrets. */
+const WEAK_PASTE_AUTH_SECRETS = new Set([
+  "change-me-in-production-use-a-long-random-string",
+  "change-me-to-a-long-random-string",
+  "papercut-dev-only-secret-change-me",
+  "changeme",
+  "secret",
+  "password",
+]);
+
+const MIN_PROD_AUTH_SECRET_LEN = 16;
+
+/**
+ * True when a secret is empty, a known placeholder, or too short for production.
+ * Used so Compose/docs placeholders cannot ship as working unlock keys.
+ */
+export function isWeakPasteAuthSecret(secret: string | undefined): boolean {
+  if (secret == null) return true;
+  const s = secret.trim();
+  if (!s) return true;
+  if (WEAK_PASTE_AUTH_SECRETS.has(s.toLowerCase())) return true;
+  if (WEAK_PASTE_AUTH_SECRETS.has(s)) return true;
+  if (s.length < MIN_PROD_AUTH_SECRET_LEN) return true;
+  return false;
+}
+
 export function getPasteAuthSecret(): string {
   const secret = process.env.PASTE_AUTH_SECRET?.trim();
-  if (secret) return secret;
   if (process.env.NODE_ENV === "production") {
-    throw new Error("PASTE_AUTH_SECRET is required in production");
+    if (!secret || isWeakPasteAuthSecret(secret)) {
+      throw new Error(
+        "PASTE_AUTH_SECRET must be a strong random value in production " +
+          `(≥${MIN_PROD_AUTH_SECRET_LEN} chars; not a documented placeholder). ` +
+          'Generate one with: openssl rand -hex 32',
+      );
+    }
+    return secret;
   }
+  if (secret && !isWeakPasteAuthSecret(secret)) return secret;
   // Deterministic dev fallback so cookies work across reloads; not for production.
   return "papercut-dev-only-secret-change-me";
 }

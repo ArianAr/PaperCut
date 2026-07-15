@@ -5,6 +5,7 @@ import {
   getPasteAuthSecret,
   getPublicUrl,
   getTrustedProxyHops,
+  isWeakPasteAuthSecret,
 } from "./env";
 
 const keys = [
@@ -52,15 +53,33 @@ describe("env helpers", () => {
     expect(getPublicUrl()).toBeUndefined();
   });
 
-  it("requires auth secret in production", () => {
+  it("requires a strong auth secret in production", () => {
     remember();
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("PASTE_AUTH_SECRET", "");
     delete process.env.PASTE_AUTH_SECRET;
     expect(() => getPasteAuthSecret()).toThrow(/PASTE_AUTH_SECRET/);
 
-    vi.stubEnv("PASTE_AUTH_SECRET", "prod-secret");
-    expect(getPasteAuthSecret()).toBe("prod-secret");
+    vi.stubEnv(
+      "PASTE_AUTH_SECRET",
+      "change-me-in-production-use-a-long-random-string",
+    );
+    expect(() => getPasteAuthSecret()).toThrow(/strong random|placeholder/i);
+
+    vi.stubEnv("PASTE_AUTH_SECRET", "short");
+    expect(() => getPasteAuthSecret()).toThrow(/PASTE_AUTH_SECRET/);
+
+    vi.stubEnv("PASTE_AUTH_SECRET", "prod-secret-long-enough");
+    expect(getPasteAuthSecret()).toBe("prod-secret-long-enough");
+  });
+
+  it("detects weak placeholder secrets", () => {
+    expect(isWeakPasteAuthSecret(undefined)).toBe(true);
+    expect(isWeakPasteAuthSecret("")).toBe(true);
+    expect(
+      isWeakPasteAuthSecret("change-me-to-a-long-random-string"),
+    ).toBe(true);
+    expect(isWeakPasteAuthSecret("prod-secret-long-enough")).toBe(false);
   });
 
   it("defaults trusted proxy hops to 1", () => {
