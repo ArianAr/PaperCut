@@ -1,6 +1,6 @@
 # PaperCut Roadmap
 
-Living plan for post-**1.0** work. Status: **1.0.0 shipped** (stable self-hosted pastebin + log canvas).
+Living plan for post-**1.0** work. Status: **1.1.0 shipped** (stable self-hosted pastebin + log canvas).
 
 Priorities may shift based on users and security needs. Items become GitHub issues when work starts; this file is the high-level map.
 
@@ -12,6 +12,34 @@ Priorities may shift based on users and security needs. Items become GitHub issu
 2. **Privacy by default** — no analytics; no paste body / IP logging in app code.
 3. **Developer UX** — CLI speed, canvas performance, clear docs.
 4. **1.x compatibility** — HTTP API + CLI flags stay stable; breaking changes wait for 2.0.
+5. **Stay current** — use the **latest compatible package versions** (dependencies, toolchains, GitHub Actions) as a continuous goal, not a one-off chore.
+
+---
+
+## Dependency currency (ongoing)
+
+Goal: run on the **newest stable** versions that pass CI (`test`, `typecheck`, `lint`, `build`, `cli-pack`) and respect 1.x API compatibility.
+
+| Policy | Detail |
+|--------|--------|
+| **Default** | Prefer **latest** minor/patch of every direct dependency (npm + Actions) |
+| **Automation** | Dependabot weekly (already configured) — review & merge green PRs promptly |
+| **Majors** | Adopt major upgrades deliberately (one PR per package or coordinated group) once CI is green; do not leave known majors aging for long without a plan |
+| **Verification** | Every bump must keep CI green; for majors, manual smoke (upload paste, canvas, private unlock, Docker build) |
+| **Pinning** | Use `^` ranges in package.json; lockfile tracks exact resolved versions |
+| **Releases** | Dependency-only bumps can ship as **patch** (`1.1.x`); framework majors that need user notes as **minor** when behavior changes |
+
+### Dependency roadmap items
+
+| # | Item | Notes |
+|---|------|--------|
+| D.1 | **Merge Dependabot updates continuously** | Patch/minor first; keep queue empty when CI is green |
+| D.2 | **Next.js 16 (+ eslint-config-next)** | Major; unblocked by ESLint CLI; follow with React peer alignment |
+| D.3 | **TypeScript / ESLint / Vitest / Tailwind stack** | Keep latest stable; split bulk “development group” if CI breaks |
+| D.4 | **better-sqlite3 / drizzle-orm / nanoid** | Stay on latest majors already adopted where possible |
+| D.5 | **GitHub Actions** (`checkout`, `setup-node`, `pnpm/action-setup`) | Latest major tags |
+| D.6 | **Node engine floor** | Track LTS (currently ≥20 app / ≥18 CLI); raise when ecosystem requires |
+| D.7 | **Periodic full audit** | `pnpm outdated` + Dependabot alerts; fix high/critical quickly |
 
 ---
 
@@ -19,10 +47,10 @@ Priorities may shift based on users and security needs. Items become GitHub issu
 
 | Item | Area | Why |
 |------|------|-----|
-| Dependabot / security patches (non-major) | deps | Stay secure without Next 16 jump |
+| **Package updates → latest compatible** | deps | Ongoing (see [Dependency currency](#dependency-currency-ongoing)) |
+| Dependabot PR triage | deps | Merge green; fix or schedule red majors |
 | Fix/guard flaky edge cases from real usage | bug | Production hardening |
 | Docs polish (screenshots, demo GIF) | docs | Onboarding |
-| Track open Dependabot majors deliberately | deps | Next 16, bulk TS upgrades |
 
 ---
 
@@ -90,7 +118,7 @@ Out of scope for core: baking a full web server *into* the PaperCut container; T
 | 2.0.2 | **Client-side E2E encryption** for private pastes | Password never hits server |
 | 2.0.3 | **Live append / tail** to existing paste | Streaming sessions |
 | 2.0.4 | **Plugin hooks** (webhooks on create) | Automation |
-| 2.0.5 | **Next.js 16+ / React upgrades** as baseline | After lint migration |
+| 2.0.5 | **Next.js 16+ / React as baseline** (if not already adopted in 1.x) | Prefer earlier via **D.2** when CI allows |
 
 ---
 
