@@ -153,6 +153,7 @@ See [`.env.example`](./.env.example).
 | `PAPERCUT_METRICS` | Enable `GET /api/metrics` (`1`/`true`/`yes`/`on`) | off |
 | `TRUSTED_PROXY_HOPS` | X-Forwarded-For hops to trust (0 = ignore XFF) | `1` |
 | `COOKIE_SECURE` | Force Secure cookies (`1`/`0`); else from public URL | auto |
+| `REDIS_URL` | Shared rate limits across instances (optional) | off (in-memory) |
 
 ---
 
@@ -160,7 +161,7 @@ See [`.env.example`](./.env.example).
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `POST` | `/api/pastes` | `{ content, expire?, password? }` → `{ id, url, expiresAt, metadata }` |
+| `POST` | `/api/pastes` | JSON `{ content, expire?, password? }` **or** `text/plain` body + `X-PaperCut-Expire` / `X-PaperCut-Password` headers (streaming CLI) |
 | `GET` | `/api/pastes/:id` | Paste body or `401` + `{ locked: true }` |
 | `POST` | `/api/pastes/:id/unlock` | `{ password }` → httpOnly unlock cookie |
 | `GET` | `/api/health` | Liveness/readiness (+ expired purge) |

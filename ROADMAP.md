@@ -91,9 +91,9 @@ Focus: multi-instance self-host without losing privacy defaults.
 
 | # | Feature | Area | Notes |
 |---|---------|------|--------|
-| 1.3.1 | **Shared rate-limit store** (Redis optional) | server, docker | Fallback: in-memory |
-| 1.3.2 | **Object storage for large pastes** (S3/MinIO optional) | server | Keep SQLite for metadata |
-| 1.3.3 | **Streaming upload** (chunked stdin) | cli, api | Very large builds |
+| 1.3.1 | **Shared rate-limit store** (Redis optional) | server, docker | ✅ Done (`REDIS_URL`, fixed-window; memory fallback) |
+| 1.3.2 | **Object storage for large pastes** (S3/MinIO optional) | server | Deferred (SQLite default remains happy path) |
+| 1.3.3 | **Streaming upload** (chunked stdin) | cli, api | ✅ Done (CLI streams `text/plain`; server size-capped read) |
 | 1.3.4 | **Background expire sweeper** (cron process) | server | ✅ Done (compose profile `sweeper` → `/api/health`) |
 | 1.3.5 | **Read replicas / RO mode** | server | Optional — deferred (complexity vs single-node default) |
 | 1.3.6 | **Optional reverse-proxy stack** (compose profiles) | docker | ✅ Done (Caddy profile `proxy` + ACME) |

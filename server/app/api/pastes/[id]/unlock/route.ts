@@ -7,10 +7,7 @@ import {
 import { getDb } from "@/lib/db";
 import { recordMetric } from "@/lib/metrics";
 import { unlockPaste } from "@/lib/paste";
-import {
-  clientKeyFromRequest,
-  getUnlockRateLimiter,
-} from "@/lib/rate-limit";
+import { checkRateLimit, clientKeyFromRequest } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -24,7 +21,7 @@ export async function POST(request: Request, context: RouteContext) {
 
   // Key by paste + client so brute force is limited per paste without logging IPs
   const rateKey = `unlock:${id}:${clientKeyFromRequest(request)}`;
-  const rate = getUnlockRateLimiter().attempt(rateKey);
+  const rate = await checkRateLimit("unlock", rateKey);
   if (!rate.allowed) {
     recordMetric("rate_limited");
     return NextResponse.json(

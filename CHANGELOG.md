@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Log canvas **multi-paste compare** (side-by-side via `?compare=<id>` or sidebar)
 - Proxy-aware runtime: `TRUSTED_PROXY_HOPS` for rate-limit client keys; Secure cookies from `PAPERCUT_PUBLIC_URL` / `COOKIE_SECURE`
 - Docker Compose **profiles**: `proxy` (Caddy + ACME), `sweeper` (periodic `/api/health` purge)
+- Optional **Redis** rate limiting via `REDIS_URL` (multi-node; memory fallback)
+- CLI **streaming upload** (`text/plain` body + headers); API accepts raw body with size limit
 
 ### Fixed
 

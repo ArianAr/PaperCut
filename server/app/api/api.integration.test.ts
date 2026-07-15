@@ -195,7 +195,9 @@ describe("API integration", () => {
 
   it("rate-limits unlock attempts with 429", async () => {
     const tiny = new RateLimiter({ limit: 2, windowMs: 600_000 });
-    vi.spyOn(rateLimitMod, "getUnlockRateLimiter").mockReturnValue(tiny);
+    vi.spyOn(rateLimitMod, "checkRateLimit").mockImplementation(
+      async (_scope, key) => tiny.attempt(key),
+    );
 
     const created = await createPasteRoute(
       new Request("http://test.local/api/pastes", {
@@ -236,6 +238,29 @@ describe("API integration", () => {
     expect(limited.headers.get("Retry-After")).toBeTruthy();
   });
 
+  it("accepts text/plain streaming body for create", async () => {
+    const res = await createPasteRoute(
+      new Request("http://test.local/api/pastes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "X-PaperCut-Expire": "1h",
+        },
+        body: "streamed line 1\nstreamed line 2",
+      }),
+    );
+    expect(res.status).toBe(201);
+    const data = await res.json();
+    expect(data.id).toBeTruthy();
+
+    const getRes = await getPasteRoute(
+      new Request(`http://test.local/api/pastes/${data.id}`),
+      { params: Promise.resolve({ id: data.id }) },
+    );
+    const paste = await getRes.json();
+    expect(paste.rawContent).toBe("streamed line 1\nstreamed line 2");
+  });
+
   it("GET /api/metrics is 404 when disabled (default)", async () => {
     delete process.env.PAPERCUT_METRICS;
     const res = await metricsRoute();
@@ -266,7 +291,9 @@ describe("API integration", () => {
     expect(unlock.status).toBe(200);
 
     const tiny = new RateLimiter({ limit: 1, windowMs: 600_000 });
-    vi.spyOn(rateLimitMod, "getCreateRateLimiter").mockReturnValue(tiny);
+    vi.spyOn(rateLimitMod, "checkRateLimit").mockImplementation(
+      async (_scope, key) => tiny.attempt(key),
+    );
     // First create attempt succeeds under the tiny limiter and is counted;
     // second hits 429.
     await createPasteRoute(
