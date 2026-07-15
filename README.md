@@ -137,7 +137,8 @@ Paste UI: `/paste/:id` (password gate when protected). Line deep links: `#L12`, 
 ## Documentation
 
 - [Changelog](./CHANGELOG.md) — release history (Keep a Changelog)
-- [Contributing](./CONTRIBUTING.md) — setup, PR process, testing, **release checklist**
+- [Roadmap](./ROADMAP.md) — planned features after 1.0
+- [Contributing](./CONTRIBUTING.md) — setup, PR process, testing, **release checklist**, labels
 - [Security policy](./SECURITY.md) — supported versions and vulnerability reporting
 - [License](./LICENSE) — GPL-3.0-only
 - [Releases](https://github.com/ArianAr/PaperCut/releases) — Git tags (`vX.Y.Z`)
