@@ -1,0 +1,29 @@
+{
+  "name": "papercut",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Interactive terminal pastebin and log analysis canvas",
+  "license": "GPL-3.0-only",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @papercut/server dev",
+    "build": "pnpm --filter @papercut/server build",
+    "start": "pnpm --filter @papercut/server start",
+    "test": "pnpm -r --if-present test",
+    "test:unit": "pnpm -r --if-present test:unit",
+    "lint": "pnpm -r --if-present lint",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "cli": "node cli/bin.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ArianAr/PaperCut.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ArianAr/PaperCut/issues"
+  },
+  "homepage": "https://github.com/ArianAr/PaperCut#readme"
+}

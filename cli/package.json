@@ -1,0 +1,32 @@
+{
+  "name": "papercut",
+  "version": "0.1.0",
+  "description": "CLI client for PaperCut — pipe terminal output to an interactive log canvas",
+  "license": "GPL-3.0-only",
+  "bin": {
+    "papercut": "./bin.js"
+  },
+  "files": [
+    "bin.js",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test test/**/*.test.js",
+    "test:unit": "node --test test/**/*.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ArianAr/PaperCut.git",
+    "directory": "cli"
+  },
+  "keywords": [
+    "pastebin",
+    "logs",
+    "cli",
+    "terminal",
+    "papercut"
+  ]
+}
