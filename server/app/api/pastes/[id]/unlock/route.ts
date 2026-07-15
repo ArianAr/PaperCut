@@ -5,6 +5,7 @@ import {
   unlockCookieOptions,
 } from "@/lib/auth-cookie";
 import { getDb } from "@/lib/db";
+import { recordMetric } from "@/lib/metrics";
 import { unlockPaste } from "@/lib/paste";
 import {
   clientKeyFromRequest,
@@ -25,6 +26,7 @@ export async function POST(request: Request, context: RouteContext) {
   const rateKey = `unlock:${id}:${clientKeyFromRequest(request)}`;
   const rate = getUnlockRateLimiter().attempt(rateKey);
   if (!rate.allowed) {
+    recordMetric("rate_limited");
     return NextResponse.json(
       { error: "Too many unlock attempts. Try again later." },
       {
@@ -53,6 +55,7 @@ export async function POST(request: Request, context: RouteContext) {
     return NextResponse.json({ error: result.error }, { status: result.status });
   }
 
+  recordMetric("unlocks_ok");
   const token = createUnlockToken(id);
   const response = NextResponse.json({ ok: true });
   response.cookies.set(authCookieName(id), token, unlockCookieOptions());

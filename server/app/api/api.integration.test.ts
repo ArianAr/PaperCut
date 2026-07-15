@@ -36,7 +36,9 @@ import { POST as createPasteRoute } from "./pastes/route";
 import { GET as getPasteRoute } from "./pastes/[id]/route";
 import { POST as unlockPasteRoute } from "./pastes/[id]/unlock/route";
 import { GET as healthRoute } from "./health/route";
+import { GET as metricsRoute } from "./metrics/route";
 import * as rateLimitMod from "@/lib/rate-limit";
+import { getMetrics } from "@/lib/metrics";
 
 function openTempDb() {
   dbPath = path.join(
@@ -53,6 +55,8 @@ beforeEach(() => {
   cookieJar.clear();
   process.env.PASTE_AUTH_SECRET = "test-secret-for-api-integration";
   process.env.PAPERCUT_PUBLIC_URL = "http://test.local";
+  delete process.env.PAPERCUT_METRICS;
+  getMetrics().reset();
   vi.restoreAllMocks();
 });
 
@@ -69,6 +73,8 @@ afterEach(() => {
     }
   }
   dbPath = undefined;
+  delete process.env.PAPERCUT_METRICS;
+  getMetrics().reset();
 });
 
 describe("API integration", () => {
@@ -228,5 +234,69 @@ describe("API integration", () => {
     );
     expect(limited.status).toBe(429);
     expect(limited.headers.get("Retry-After")).toBeTruthy();
+  });
+
+  it("GET /api/metrics is 404 when disabled (default)", async () => {
+    delete process.env.PAPERCUT_METRICS;
+    const res = await metricsRoute();
+    expect(res.status).toBe(404);
+  });
+
+  it("records counters and serves GET /api/metrics when enabled", async () => {
+    process.env.PAPERCUT_METRICS = "1";
+
+    const created = await createPasteRoute(
+      new Request("http://test.local/api/pastes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: "metrics-paste", password: "pw" }),
+      }),
+    );
+    expect(created.status).toBe(201);
+    const { id } = await created.json();
+
+    const unlock = await unlockPasteRoute(
+      new Request(`http://test.local/api/pastes/${id}/unlock`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: "pw" }),
+      }),
+      { params: Promise.resolve({ id }) },
+    );
+    expect(unlock.status).toBe(200);
+
+    const tiny = new RateLimiter({ limit: 1, windowMs: 600_000 });
+    vi.spyOn(rateLimitMod, "getCreateRateLimiter").mockReturnValue(tiny);
+    // First create attempt succeeds under the tiny limiter and is counted;
+    // second hits 429.
+    await createPasteRoute(
+      new Request("http://test.local/api/pastes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: "another" }),
+      }),
+    );
+    const limited = await createPasteRoute(
+      new Request("http://test.local/api/pastes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: "blocked" }),
+      }),
+    );
+    expect(limited.status).toBe(429);
+
+    const res = await metricsRoute();
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+    expect(body.service).toBe("papercut");
+    expect(body.enabled).toBe(true);
+    expect(typeof body.uptimeSec).toBe("number");
+    // 1 initial create + 1 under tiny limiter
+    expect(body.counters.pastes_created).toBe(2);
+    expect(body.counters.unlocks_ok).toBe(1);
+    expect(body.counters.rate_limited).toBe(1);
+    // Privacy: no content, IPs, or keys in the payload
+    expect(JSON.stringify(body)).not.toMatch(/metrics-paste|203\.|password|pw/);
   });
 });
