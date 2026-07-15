@@ -103,6 +103,29 @@ When fixing a bug, add a regression test when feasible.
 
 Do **not** report security vulnerabilities in public issues. Follow [SECURITY.md](./SECURITY.md).
 
+## Releasing
+
+Every **semver release** (Git tag + GitHub Release) must update the repo in the same change set. Do not tag without these steps.
+
+### Checklist
+
+1. **Changelog** — Move items from `[Unreleased]` in [CHANGELOG.md](./CHANGELOG.md) into a new section `## [X.Y.Z] - YYYY-MM-DD` (Keep a Changelog categories: Added / Changed / Fixed / Security / Removed). Update compare links at the bottom.
+2. **Versions** — Bump `version` in lockstep:
+   - root [`package.json`](./package.json)
+   - [`cli/package.json`](./cli/package.json)
+   - [`server/package.json`](./server/package.json)
+3. **Security policy** — Update the supported-versions table in [SECURITY.md](./SECURITY.md) (current line supported; older minors unsupported unless explicitly maintained).
+4. **Tests** — `pnpm test` (and any package-specific suites) green on the release commit.
+5. **Tag & release** — Create an annotated tag `vX.Y.Z` on `main` and a GitHub Release whose body matches the CHANGELOG section (or links to it).
+6. **PR hygiene** — Prefer a dedicated `chore/release-X.Y.Z` PR (or include the version/changelog/security updates in the final feature PR before tagging).
+
+### Versioning hints
+
+- **Patch** (`0.2.1`): bugfixes, security patches, docs that ship with a tag
+- **Minor** (`0.3.0`): new features, backward-compatible
+- **Major** (`1.0.0`): stable API / breaking changes
+
 ## License
 
 By contributing, you agree that your contributions are licensed under the same license as the project (GPL-3.0-only; see [LICENSE](./LICENSE)).
+
