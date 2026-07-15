@@ -72,6 +72,7 @@ Pull requests and pushes to `main` run [.github/workflows/ci.yml](./.github/work
 | `typecheck` | `pnpm typecheck` |
 | `lint` | `pnpm lint` |
 | `build` | `pnpm build` |
+| `cli-pack` | `pnpm --filter papercut-cli pack:dry-run` (npm publish surface) |
 | `ci` | Aggregate gate — **required** to merge into `main` |
 
 Faulty PRs cannot merge while the required `ci` check is red (branch ruleset on `main`).
