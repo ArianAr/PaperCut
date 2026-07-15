@@ -4,15 +4,18 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { useEffect, useRef } from "react";
 import type { LineSelection, ParsedLogLine } from "@/lib/log-lines";
 import { isLineSelected } from "@/lib/log-lines";
+import { isBookmarked } from "@/lib/bookmarks";
 import type { WrapMode } from "@/lib/wrap-mode";
 import { LogLineRow } from "./LogLineRow";
 
 interface VirtualLogListProps {
   lines: ParsedLogLine[];
   selection: LineSelection | null;
+  bookmarks: readonly number[];
   wrapMode: WrapMode;
   scrollToLineNumber: number | null;
   onLineNumberClick: (lineNumber: number, shiftKey: boolean) => void;
+  onToggleBookmark: (lineNumber: number) => void;
 }
 
 const ROW_ESTIMATE = 28;
@@ -20,11 +23,14 @@ const ROW_ESTIMATE = 28;
 export function VirtualLogList({
   lines,
   selection,
+  bookmarks,
   wrapMode,
   scrollToLineNumber,
   onLineNumberClick,
+  onToggleBookmark,
 }: VirtualLogListProps) {
   const parentRef = useRef<HTMLDivElement>(null);
+  const bookmarkSet = new Set(bookmarks);
 
   const virtualizer = useVirtualizer({
     count: lines.length,
@@ -75,8 +81,10 @@ export function VirtualLogList({
               <LogLineRow
                 line={line}
                 selected={isLineSelected(line.lineNumber, selection)}
+                bookmarked={isBookmarked(bookmarkSet, line.lineNumber)}
                 wrapMode={wrapMode}
                 onLineNumberClick={onLineNumberClick}
+                onToggleBookmark={onToggleBookmark}
               />
             </div>
           );
