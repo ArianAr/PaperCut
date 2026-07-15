@@ -52,7 +52,7 @@ echo "hello from papercut" | pnpm cli --url http://localhost:3000
    ```
    Branch prefixes we use: `feat/`, `fix/`, `docs/`, `chore/`, `test/`.
 3. **Implement** with tests for behavior changes.
-4. **Run checks locally** (same as CI):
+4. **Run checks locally** (same as CI) — do this for **every** change before push:
    ```bash
    pnpm test
    pnpm lint
@@ -60,7 +60,11 @@ echo "hello from papercut" | pnpm cli --url http://localhost:3000
    pnpm build
    ```
 5. **Commit** with clear messages (see below).
-6. **Push and open a PR** against `main`.
+6. **Push and open a PR** against `main` (prefer one issue → one PR; use `Closes #N`).
+7. **Review the PR** after CI is green (human or tooling). Fix bug-level findings before merge.
+8. **Merge only when** required `ci` is green and review is done.
+
+Agent automation follows the same bar — see [AGENTS.md](./AGENTS.md).
 
 ### Continuous integration
 
