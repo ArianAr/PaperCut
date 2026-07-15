@@ -118,11 +118,36 @@ jobs:
           # Build-time only; not used for secrets in CI
           PASTE_AUTH_SECRET: ci-build-placeholder-secret
 
+  cli-pack:
+    name: cli-pack
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 9.15.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: CLI npm pack dry-run
+        run: pnpm --filter papercut-cli pack:dry-run
+
   # Single required check for branch protection / rulesets
   ci:
     name: ci
     runs-on: ubuntu-latest
-    needs: [test, typecheck, lint, build]
+    needs: [test, typecheck, lint, build, cli-pack]
     if: always()
     steps:
       - name: All jobs green
@@ -132,7 +157,9 @@ jobs:
           echo "typecheck=${{ needs.typecheck.result }}"
           echo "lint=${{ needs.lint.result }}"
           echo "build=${{ needs.build.result }}"
+          echo "cli-pack=${{ needs.cli-pack.result }}"
           test "${{ needs.test.result }}" = "success"
           test "${{ needs.typecheck.result }}" = "success"
           test "${{ needs.lint.result }}" = "success"
           test "${{ needs.build.result }}" = "success"
+          test "${{ needs.cli-pack.result }}" = "success"

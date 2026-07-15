@@ -63,7 +63,7 @@ stdin ──► papercut CLI ──POST /api/pastes──► Next.js server
 
 | Path | Role |
 |------|------|
-| [`cli/`](./cli) | Lightweight Node CLI (`npx` / global install) |
+| [`cli/`](./cli) | Lightweight Node CLI — npm package **`papercut-cli`** (`npx papercut-cli`) |
 | [`server/`](./server) | Next.js (App Router) API + log canvas UI |
 
 ---

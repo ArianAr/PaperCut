@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Lint via **ESLint CLI** (flat config) instead of deprecated `next lint`
+- CLI published as **`papercut-cli`** on npm (name `papercut` taken); publish checklist + CI `cli-pack` dry-run
 
 ### Planned
 
