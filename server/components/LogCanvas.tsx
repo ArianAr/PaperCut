@@ -8,6 +8,7 @@ import {
   defaultLevelFilters,
   filterLogLines,
   formatLineHash,
+  joinLinesForExport,
   parseLineHash,
   parseLogLines,
   parseSearchQuery,
@@ -186,15 +187,25 @@ export function LogCanvas({
     }
   }
 
-  function downloadRaw() {
-    const blob = new Blob([rawContent], { type: "text/plain;charset=utf-8" });
+  function downloadText(content: string, filename: string) {
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `paste-${id}.log`;
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
   }
+
+  function downloadRaw() {
+    downloadText(rawContent, `paste-${id}.log`);
+  }
+
+  function downloadFiltered() {
+    downloadText(joinLinesForExport(visibleLines), `paste-${id}-filtered.log`);
+  }
+
+  const isFiltered = visibleLines.length !== allLines.length;
 
   const wrapLabel =
     wrapMode === "wrap" ? "No wrap" : "Wrap";
@@ -309,6 +320,21 @@ export function LogCanvas({
               className="w-full rounded border border-vscode-border bg-vscode-line px-2 py-1.5 text-xs hover:border-vscode-accent"
             >
               Download .log
+            </button>
+            <button
+              type="button"
+              onClick={downloadFiltered}
+              disabled={visibleLines.length === 0}
+              title={
+                isFiltered
+                  ? `Download ${visibleLines.length} visible line(s) after filters`
+                  : "Download currently visible lines (same as full paste when unfiltered)"
+              }
+              className="w-full rounded border border-vscode-border bg-vscode-line px-2 py-1.5 text-xs hover:border-vscode-accent disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {isFiltered
+                ? `Download filtered (${visibleLines.length})`
+                : "Download visible"}
             </button>
             {selection ? (
               <button
