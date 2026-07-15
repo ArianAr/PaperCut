@@ -11,10 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [ROADMAP.md](./ROADMAP.md) — post-1.0 feature plan (v1.1–v2.0)
 - Roadmap: reverse proxy / domain / HTTPS (nginx, Caddy, Traefik) in v1.1 docs + v1.3 optional compose
+- Polished README (badges, architecture sketch, feature summary)
+- [docs/deploy](./docs/deploy/README.md) — reverse proxy (nginx/Caddy/Traefik), HTTPS, SQLite backup
+- HTTP API route integration tests (create/get/unlock/health/rate-limit)
+
+### Changed
+
+- Lint via **ESLint CLI** (flat config) instead of deprecated `next lint`
 
 ### Planned
 
-See [ROADMAP.md](./ROADMAP.md) (e.g. multi-instance rate limiting, canvas power tools, reverse proxy + HTTPS, Next 16 migration).
+See [ROADMAP.md](./ROADMAP.md) for remaining v1.1+ items.
 
 ## [1.0.0] - 2026-07-15
 

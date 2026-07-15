@@ -1,82 +1,113 @@
 # PaperCut
 
-[![CI](https://github.com/ArianAr/PaperCut/actions/workflows/ci.yml/badge.svg)](https://github.com/ArianAr/PaperCut/actions/workflows/ci.yml)
+<p align="center">
+  <strong>Interactive terminal pastebin &amp; log analysis canvas</strong><br/>
+  Pipe any terminal output to a secure share link — ANSI colors, filters, JSON trees, and line deep-links.
+</p>
 
-**Interactive terminal pastebin and log analysis canvas.**
-
-Pipe any terminal output or log file to a self-hosted PaperCut instance and get a secure, shareable link. The result is not a static text dump—it is a developer-focused log canvas with ANSI colors, virtualized scrolling, log-level filters, JSON inspection, grep, and GitHub-style line links.
+<p align="center">
+  <a href="https://github.com/ArianAr/PaperCut/actions/workflows/ci.yml"><img src="https://github.com/ArianAr/PaperCut/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <a href="https://github.com/ArianAr/PaperCut/releases/latest"><img src="https://img.shields.io/github/v/release/ArianAr/PaperCut?label=release" alt="Release" /></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue.svg" alt="License" /></a>
+  <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg" alt="Node.js" /></a>
+  <a href="./Dockerfile"><img src="https://img.shields.io/badge/docker-ready-2496ED?logo=docker&logoColor=white" alt="Docker" /></a>
+  <a href="./SECURITY.md"><img src="https://img.shields.io/badge/security-policy-red.svg" alt="Security" /></a>
+  <a href="./ROADMAP.md"><img src="https://img.shields.io/badge/roadmap-v1.1+-informational.svg" alt="Roadmap" /></a>
+</p>
 
 ```bash
-yarn build | papercut
+yarn build 2>&1 | papercut
 # → https://your-host/paste/V1StGXR8_Z
 ```
+
+---
+
+## Why PaperCut?
+
+Most pastebins dump plain text. PaperCut turns build logs and terminal streams into a **developer workspace**: virtualized scrolling for huge files, log-level filters, fuzzy/regex search, expandable JSON, and GitHub-style `#L12` links — self-hosted on SQLite with zero analytics.
+
+| | |
+|---|---|
+| **CLI** | Zero npm deps · stdin upload · clipboard share card |
+| **Canvas** | ANSI · filters · grep · JSON tree · line links |
+| **Self-host** | Docker + SQLite · password pastes · expiry |
+| **Privacy** | No analytics · no IP/body logging in app code |
+
+---
 
 ## Features
 
 - **Fast CLI** — zero npm dependencies; read stdin, upload, print a share card, copy the URL
-- **ANSI-aware viewer** — terminal colors and styles rendered in the browser
+- **ANSI-aware viewer** — terminal colors and styles in the browser
 - **Virtualized log list** — comfortable browsing of very large logs
 - **Log level filters** — DEBUG / INFO / WARN / ERROR / FATAL toggles
 - **JSON inspector** — expandable trees for structured log lines
-- **Search & grep** — local keyword or regex filtering
+- **Search & grep** — local keyword or `/regex/flags`
 - **Line linking** — `#L120` / `#L120-L125` deep links
 - **Private pastes** — password-protected links (`--private`)
-- **Expiry** — auto-delete after `1h`, `1d`, `7d`, etc.
-- **Privacy-minded** — no analytics; self-host your data
+- **Expiry** — auto-delete after `1h`, `1d`, `7d`, …
+- **Privacy-minded** — no analytics; you control the data plane
 - **SQLite** — zero-config persistence for simple deploys
 
+---
+
 ## Architecture
+
+```
+stdin ──► papercut CLI ──POST /api/pastes──► Next.js server
+                                              │
+                                         SQLite (pastes)
+                                              │
+                         browser ◄── /paste/[id] (log canvas)
+```
 
 | Path | Role |
 |------|------|
 | [`cli/`](./cli) | Lightweight Node CLI (`npx` / global install) |
 | [`server/`](./server) | Next.js (App Router) API + log canvas UI |
 
-Storage: **SQLite** via Drizzle ORM. Deploy with Node or Docker.
+---
 
 ## Quick start (development)
 
-**Requirements:** Node.js ≥ 20, [pnpm](https://pnpm.io) 9.x
+**Requirements:** Node.js ≥ 20 · [pnpm](https://pnpm.io) 9.x
 
 ```bash
 git clone https://github.com/ArianAr/PaperCut.git
 cd PaperCut
 pnpm install
 cp .env.example server/.env.local
-# Edit PASTE_AUTH_SECRET to a long random value
+# Set PASTE_AUTH_SECRET to a long random value
 pnpm dev
 ```
 
-Upload a paste:
-
 ```bash
+# another terminal
 echo -e '\033[31merror\033[0m\n[INFO] all good' | pnpm cli --url http://localhost:3000
 ```
 
 Open the printed URL in your browser.
 
+---
+
 ## CLI usage
 
 ```bash
-# Basic
 some-command 2>&1 | papercut
-
-# Password-protected
 some-command 2>&1 | papercut --private
-
-# Auto-expire
 some-command 2>&1 | papercut --expire 1d
-
-# Custom server
 some-command 2>&1 | papercut --url https://papercut.example.com
 ```
 
-| Flag | Description |
-|------|-------------|
-| `-p`, `--private` | Password-protect the paste (prompt or `PAPERCUT_PASSWORD`) |
-| `--expire <time>` | Expiry: `30m`, `1h`, `1d`, `7d`, … |
-| `--url <base>` | Server base URL (or env `PAPERCUT_URL`) |
+| Flag / env | Description |
+|------------|-------------|
+| `-p`, `--private` | Password-protect (prompt or `PAPERCUT_PASSWORD`) |
+| `--expire <time>` | `30m`, `1h`, `1d`, `7d`, … |
+| `--url <base>` | Server origin (or `PAPERCUT_URL`) |
+| `-V`, `--version` | Print CLI version |
 | `-h`, `--help` | Show help |
+
+---
 
 ## Docker (self-host)
 
@@ -86,10 +117,11 @@ export PAPERCUT_PUBLIC_URL="http://localhost:3000"
 docker compose up --build -d
 ```
 
-- App: `http://localhost:3000`
-- SQLite: Docker volume `papercut-data` (`DATABASE_PATH=/data/papercut.db`)
-
-Or build the image directly:
+| | |
+|---|---|
+| App | `http://localhost:3000` |
+| SQLite | volume `papercut-data` → `/data/papercut.db` |
+| Health | `GET /api/health` |
 
 ```bash
 docker build -t papercut .
@@ -100,52 +132,65 @@ docker run --rm -p 3000:3000 \
   papercut
 ```
 
+For **custom domain + HTTPS**, put nginx/Caddy/Traefik in front — see [docs/deploy](./docs/deploy/README.md).
+
+---
+
 ## Environment variables
 
 See [`.env.example`](./.env.example).
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `PAPERCUT_PUBLIC_URL` | Base URL for share links | request origin / `http://localhost:3000` |
+| `PAPERCUT_PUBLIC_URL` | Base URL for share links | request origin |
 | `DATABASE_PATH` | SQLite file path | `./data/papercut.db` |
 | `MAX_PASTE_SIZE` | Max body size (bytes) | `10485760` (10 MiB) |
-| `PASTE_AUTH_SECRET` | HMAC secret for unlock cookies | required in production |
-| `UNLOCK_RATE_LIMIT` | Max unlock attempts per paste+client / window | `10` |
-| `UNLOCK_RATE_WINDOW_MS` | Unlock rate-limit window (ms) | `600000` (10m) |
-| `CREATE_RATE_LIMIT` | Max paste creates per client / window | `60` |
-| `CREATE_RATE_WINDOW_MS` | Create rate-limit window (ms) | `600000` (10m) |
+| `PASTE_AUTH_SECRET` | HMAC secret for unlock cookies | **required in production** |
+| `UNLOCK_RATE_LIMIT` | Unlock attempts / window | `10` |
+| `UNLOCK_RATE_WINDOW_MS` | Unlock window (ms) | `600000` |
+| `CREATE_RATE_LIMIT` | Creates / window | `60` |
+| `CREATE_RATE_WINDOW_MS` | Create window (ms) | `600000` |
+
+---
 
 ## HTTP API (stable for 1.x)
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `POST` | `/api/pastes` | Create paste — JSON `{ content, expire?, password? }` → `{ id, url, expiresAt, metadata }` |
-| `GET` | `/api/pastes/:id` | Fetch paste (401 + `{ locked: true }` if password required) |
-| `POST` | `/api/pastes/:id/unlock` | Unlock — JSON `{ password }` sets httpOnly cookie |
-| `GET` | `/api/health` | Liveness/readiness (also purges expired rows) |
+| `POST` | `/api/pastes` | `{ content, expire?, password? }` → `{ id, url, expiresAt, metadata }` |
+| `GET` | `/api/pastes/:id` | Paste body or `401` + `{ locked: true }` |
+| `POST` | `/api/pastes/:id/unlock` | `{ password }` → httpOnly unlock cookie |
+| `GET` | `/api/health` | Liveness/readiness (+ expired purge) |
 
-Paste UI: `/paste/:id` (password gate when protected). Line deep links: `#L12`, `#L12-L20`.
+UI: `/paste/:id` · deep links `#L12`, `#L12-L20`.
+
+---
 
 ## Privacy
 
-- PaperCut application code does **not** include analytics SDKs.
-- Paste bodies and client IPs are **not** intentionally logged by the app.
-- Rate limiting may use `X-Forwarded-For` **in memory only** (never written to logs).
-- Public pastes are **capability URLs** (anyone with the link can read them). Use `--private` for sensitive content.
-- You control the host when self-hosting.
+- No analytics SDKs in application code
+- Paste bodies and client IPs are **not** intentionally logged
+- Rate limiting may use `X-Forwarded-For` **in memory only**
+- Public pastes are **capability URLs** — use `--private` for sensitive data
+
+---
 
 ## Documentation
 
-- [Changelog](./CHANGELOG.md) — release history (Keep a Changelog)
-- [Roadmap](./ROADMAP.md) — planned features after 1.0
-- [Contributing](./CONTRIBUTING.md) — setup, PR process, testing, **release checklist**, labels
-- [Security policy](./SECURITY.md) — supported versions and vulnerability reporting
-- [License](./LICENSE) — GPL-3.0-only
-- [Releases](https://github.com/ArianAr/PaperCut/releases) — Git tags (`vX.Y.Z`)
+| Doc | |
+|-----|---|
+| [Changelog](./CHANGELOG.md) | Release history |
+| [Roadmap](./ROADMAP.md) | Planned features after 1.0 |
+| [Deploy guide](./docs/deploy/README.md) | Reverse proxy, HTTPS, SQLite backup |
+| [Contributing](./CONTRIBUTING.md) | Dev setup, CI, labels, release checklist |
+| [Security](./SECURITY.md) | Supported versions & vulnerability reporting |
+| [Releases](https://github.com/ArianAr/PaperCut/releases) | Git tags (`vX.Y.Z`) |
+
+---
 
 ## Status
 
-Current version: **1.0.0** (see [CHANGELOG](./CHANGELOG.md)). The HTTP API and CLI flags documented above follow **1.x** compatibility intent; minor UI polish may still land in patch/minor releases.
+**Current version: [1.0.0](https://github.com/ArianAr/PaperCut/releases/tag/v1.0.0)** · [1.x API compatibility](./CHANGELOG.md) · next: [v1.1 roadmap](./ROADMAP.md)
 
 ## License
 
