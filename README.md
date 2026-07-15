@@ -110,11 +110,27 @@ See [`.env.example`](./.env.example).
 | `DATABASE_PATH` | SQLite file path | `./data/papercut.db` |
 | `MAX_PASTE_SIZE` | Max body size (bytes) | `10485760` (10 MiB) |
 | `PASTE_AUTH_SECRET` | HMAC secret for unlock cookies | required in production |
+| `UNLOCK_RATE_LIMIT` | Max unlock attempts per paste+client / window | `10` |
+| `UNLOCK_RATE_WINDOW_MS` | Unlock rate-limit window (ms) | `600000` (10m) |
+| `CREATE_RATE_LIMIT` | Max paste creates per client / window | `60` |
+| `CREATE_RATE_WINDOW_MS` | Create rate-limit window (ms) | `600000` (10m) |
+
+## HTTP API (stable for 1.x)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/pastes` | Create paste — JSON `{ content, expire?, password? }` → `{ id, url, expiresAt, metadata }` |
+| `GET` | `/api/pastes/:id` | Fetch paste (401 + `{ locked: true }` if password required) |
+| `POST` | `/api/pastes/:id/unlock` | Unlock — JSON `{ password }` sets httpOnly cookie |
+| `GET` | `/api/health` | Liveness/readiness (also purges expired rows) |
+
+Paste UI: `/paste/:id` (password gate when protected). Line deep links: `#L12`, `#L12-L20`.
 
 ## Privacy
 
 - PaperCut application code does **not** include analytics SDKs.
 - Paste bodies and client IPs are **not** intentionally logged by the app.
+- Rate limiting may use `X-Forwarded-For` **in memory only** (never written to logs).
 - Public pastes are **capability URLs** (anyone with the link can read them). Use `--private` for sensitive content.
 - You control the host when self-hosting.
 

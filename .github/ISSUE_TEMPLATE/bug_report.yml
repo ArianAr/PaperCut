@@ -1,0 +1,47 @@
+name: Bug report
+description: Report a defect in PaperCut
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug. **Do not** report security vulnerabilities here — use [SECURITY.md](https://github.com/ArianAr/PaperCut/blob/main/SECURITY.md).
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Git tag or package.json version (e.g. v0.2.1)
+      placeholder: v0.2.1
+    validations:
+      required: true
+  - type: dropdown
+    id: deploy
+    attributes:
+      label: How do you run PaperCut?
+      options:
+        - Docker / docker compose
+        - pnpm dev / pnpm start
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. …
+        2. …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true

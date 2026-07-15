@@ -1,0 +1,5 @@
+# Pastes are capability URLs; discourage crawlers from indexing them.
+User-agent: *
+Disallow: /paste/
+Disallow: /api/
+Allow: /$
