@@ -1,6 +1,6 @@
 {
   "name": "papercut-cli",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "CLI client for PaperCut — pipe terminal output to an interactive log canvas",
   "license": "GPL-3.0-only",
   "type": "commonjs",

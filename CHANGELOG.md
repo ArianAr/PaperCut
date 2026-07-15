@@ -7,22 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Planned
+
+See [ROADMAP.md](./ROADMAP.md) for remaining v1.1+ items (metrics, theme toggle, scale features, etc.).
+
+## [1.1.0] - 2026-07-15
+
+Ops & quality release: publishable CLI, stronger CI, deploy docs, ESLint CLI.
+
 ### Added
 
-- [ROADMAP.md](./ROADMAP.md) — post-1.0 feature plan (v1.1–v2.0)
-- Roadmap: reverse proxy / domain / HTTPS (nginx, Caddy, Traefik) in v1.1 docs + v1.3 optional compose
+- [ROADMAP.md](./ROADMAP.md) — post-1.0 feature plan (v1.1–v2.0), including reverse proxy / HTTPS path
 - Polished README (badges, architecture sketch, feature summary)
 - [docs/deploy](./docs/deploy/README.md) — reverse proxy (nginx/Caddy/Traefik), HTTPS, SQLite backup
 - HTTP API route integration tests (create/get/unlock/health/rate-limit)
+- CLI npm package **`papercut-cli`** (bins `papercut` + `papercut-cli`), publish checklist, CI `cli-pack` dry-run
+- Repository labels, issue/PR templates, Dependabot config (earlier in the 1.1 cycle)
 
 ### Changed
 
 - Lint via **ESLint CLI** (flat config) instead of deprecated `next lint`
-- CLI published as **`papercut-cli`** on npm (name `papercut` taken); publish checklist + CI `cli-pack` dry-run
+- Aggregate CI gate requires `cli-pack` in addition to test/typecheck/lint/build
 
-### Planned
+### Package versions
 
-See [ROADMAP.md](./ROADMAP.md) for remaining v1.1+ items.
+`1.1.0` — root, `papercut-cli`, `@papercut/server`
 
 ## [1.0.0] - 2026-07-15
 
@@ -76,7 +85,7 @@ First stable release. HTTP API paths and CLI flags in this version are covered b
 - GitHub-style line deep links (`#L12`, `#L12-L20`) with scroll and highlight
 - Raw copy and `.log` download from the canvas toolbar
 - Multi-stage `Dockerfile` and `docker-compose.yml` with SQLite volume
-- Unit coverage for log-line helpers and ANSI HTML escaping (40 server tests)
+- Unit coverage for log-line helpers and ANSI HTML escaping
 
 ### Changed
 
@@ -103,7 +112,8 @@ First stable release. HTTP API paths and CLI flags in this version are covered b
 
 ## Links
 
-- [Unreleased]: https://github.com/ArianAr/PaperCut/compare/v1.0.0...HEAD
+- [Unreleased]: https://github.com/ArianAr/PaperCut/compare/v1.1.0...HEAD
+- [1.1.0]: https://github.com/ArianAr/PaperCut/compare/v1.0.0...v1.1.0
 - [1.0.0]: https://github.com/ArianAr/PaperCut/compare/v0.2.1...v1.0.0
 - [0.2.1]: https://github.com/ArianAr/PaperCut/compare/v0.2.0...v0.2.1
 - [0.2.0]: https://github.com/ArianAr/PaperCut/compare/v0.1.0...v0.2.0

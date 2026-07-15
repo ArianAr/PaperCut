@@ -190,7 +190,7 @@ UI: `/paste/:id` · deep links `#L12`, `#L12-L20`.
 
 ## Status
 
-**Current version: [1.0.0](https://github.com/ArianAr/PaperCut/releases/tag/v1.0.0)** · [1.x API compatibility](./CHANGELOG.md) · next: [v1.1 roadmap](./ROADMAP.md)
+**Current version: [1.1.0](https://github.com/ArianAr/PaperCut/releases/tag/v1.1.0)** · [1.x API compatibility](./CHANGELOG.md) · roadmap: [ROADMAP.md](./ROADMAP.md)
 
 ## License
 
