@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- GitHub Actions **Publish npm** workflow — auto-publish `papercut-cli` on GitHub Release via [npm trusted publishers](https://docs.npmjs.com/trusted-publishers) (OIDC; no long-lived token)
+
 ### Planned
 
 See [ROADMAP.md](./ROADMAP.md) for remaining v1.1+ items (metrics, theme toggle, scale features, etc.).
