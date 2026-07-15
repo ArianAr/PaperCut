@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- [ROADMAP.md](./ROADMAP.md) — post-1.0 feature plan (v1.1–v2.0)
+
 ### Planned
 
-- Multi-instance rate limiting (Redis) for horizontally scaled deploys
+See [ROADMAP.md](./ROADMAP.md) (e.g. multi-instance rate limiting, canvas power tools, Next 16 migration).
 
 ## [1.0.0] - 2026-07-15
 
