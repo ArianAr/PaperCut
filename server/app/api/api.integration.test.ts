@@ -238,6 +238,59 @@ describe("API integration", () => {
     expect(limited.headers.get("Retry-After")).toBeTruthy();
   });
 
+  it("rejects oversize JSON create body with 413", async () => {
+    const prev = process.env.MAX_PASTE_SIZE;
+    process.env.MAX_PASTE_SIZE = "64";
+    try {
+      // Exceeds MAX_PASTE_SIZE + JSON overhead before parse
+      const huge = "y".repeat(20_000);
+      const res = await createPasteRoute(
+        new Request("http://test.local/api/pastes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content: huge }),
+        }),
+      );
+      expect(res.status).toBe(413);
+    } finally {
+      if (prev === undefined) delete process.env.MAX_PASTE_SIZE;
+      else process.env.MAX_PASTE_SIZE = prev;
+    }
+  });
+
+  it("rejects oversize password on create and unlock", async () => {
+    const { MAX_PASSWORD_LENGTH } = await import("@/lib/password");
+    const hugePw = "p".repeat(MAX_PASSWORD_LENGTH + 1);
+    const created = await createPasteRoute(
+      new Request("http://test.local/api/pastes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: "x", password: hugePw }),
+      }),
+    );
+    expect(created.status).toBe(400);
+
+    const ok = await createPasteRoute(
+      new Request("http://test.local/api/pastes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: "x", password: "ok-password" }),
+      }),
+    );
+    expect(ok.status).toBe(201);
+    const { id } = await ok.json();
+
+    const unlock = await unlockPasteRoute(
+      new Request(`http://test.local/api/pastes/${id}/unlock`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: hugePw }),
+      }),
+      { params: Promise.resolve({ id }) },
+    );
+    expect(unlock.status).toBe(400);
+  });
+
   it("accepts text/plain streaming body for create", async () => {
     const res = await createPasteRoute(
       new Request("http://test.local/api/pastes", {

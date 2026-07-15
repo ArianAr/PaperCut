@@ -8,6 +8,11 @@ import {
   clientKeyFromRequest,
 } from "@/lib/rate-limit";
 import { getMaxPasteSize } from "@/lib/env";
+import {
+  JSON_CREATE_OVERHEAD_BYTES,
+  readBodyWithLimit,
+  readJsonBodyWithLimit,
+} from "@/lib/request-body";
 import { buildPasteUrl } from "@/lib/urls";
 
 export const runtime = "nodejs";
@@ -69,14 +74,16 @@ export async function POST(request: Request) {
   const contentType = request.headers.get("content-type") ?? "";
   const db = getDb();
   purgeExpiredPastes(db);
+  const max = getMaxPasteSize();
 
   // Streaming / raw body path (CLI large stdin)
   if (
     contentType.includes("text/plain") ||
     contentType.includes("application/octet-stream")
   ) {
-    const max = getMaxPasteSize();
-    const buf = await readBodyWithLimit(request, max);
+    const buf = await readBodyWithLimit(request, max, {
+      exceedMessage: `content exceeds MAX_PASTE_SIZE (${max} bytes)`,
+    });
     if (!buf.ok) {
       return NextResponse.json({ error: buf.error }, { status: buf.status });
     }
@@ -90,12 +97,18 @@ export async function POST(request: Request) {
     return createResponse(request, result);
   }
 
-  let body: CreateBody;
-  try {
-    body = (await request.json()) as CreateBody;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  // JSON path: hard byte limit before parse (content + wrapper overhead)
+  const jsonMax = max + JSON_CREATE_OVERHEAD_BYTES;
+  const parsed = await readJsonBodyWithLimit<CreateBody>(request, jsonMax, {
+    exceedMessage: `request body exceeds maximum size of ${jsonMax} bytes`,
+  });
+  if (!parsed.ok) {
+    return NextResponse.json(
+      { error: parsed.error },
+      { status: parsed.status },
+    );
   }
+  const body = parsed.value;
 
   if (typeof body.content !== "string") {
     return NextResponse.json(
@@ -125,58 +138,4 @@ export async function POST(request: Request) {
   });
 
   return createResponse(request, result);
-}
-
-async function readBodyWithLimit(
-  request: Request,
-  maxBytes: number,
-): Promise<
-  | { ok: true; text: string }
-  | { ok: false; status: number; error: string }
-> {
-  const cl = request.headers.get("content-length");
-  if (cl) {
-    const n = Number.parseInt(cl, 10);
-    if (Number.isFinite(n) && n > maxBytes) {
-      return {
-        ok: false,
-        status: 413,
-        error: `content exceeds MAX_PASTE_SIZE (${maxBytes} bytes)`,
-      };
-    }
-  }
-
-  if (!request.body) {
-    return { ok: true, text: "" };
-  }
-
-  const reader = request.body.getReader();
-  const chunks: Uint8Array[] = [];
-  let total = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    if (!value) continue;
-    total += value.byteLength;
-    if (total > maxBytes) {
-      try {
-        await reader.cancel();
-      } catch {
-        /* ignore */
-      }
-      return {
-        ok: false,
-        status: 413,
-        error: `content exceeds MAX_PASTE_SIZE (${maxBytes} bytes)`,
-      };
-    }
-    chunks.push(value);
-  }
-  const merged = new Uint8Array(total);
-  let offset = 0;
-  for (const c of chunks) {
-    merged.set(c, offset);
-    offset += c.byteLength;
-  }
-  return { ok: true, text: new TextDecoder("utf-8").decode(merged) };
 }

@@ -7,7 +7,15 @@ import {
 import { getDb } from "@/lib/db";
 import { recordMetric } from "@/lib/metrics";
 import { unlockPaste } from "@/lib/paste";
+import {
+  MAX_PASSWORD_LENGTH,
+  validatePasswordInput,
+} from "@/lib/password";
 import { checkRateLimit, clientKeyFromRequest } from "@/lib/rate-limit";
+import {
+  UNLOCK_MAX_BODY_BYTES,
+  readJsonBodyWithLimit,
+} from "@/lib/request-body";
 
 export const runtime = "nodejs";
 
@@ -33,16 +41,37 @@ export async function POST(request: Request, context: RouteContext) {
     );
   }
 
-  let body: { password?: unknown };
-  try {
-    body = (await request.json()) as { password?: unknown };
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  const parsed = await readJsonBodyWithLimit<{ password?: unknown }>(
+    request,
+    UNLOCK_MAX_BODY_BYTES,
+    {
+      exceedMessage: `request body exceeds maximum size of ${UNLOCK_MAX_BODY_BYTES} bytes`,
+    },
+  );
+  if (!parsed.ok) {
+    return NextResponse.json(
+      { error: parsed.error },
+      { status: parsed.status },
+    );
   }
+  const body = parsed.value;
 
   if (typeof body.password !== "string" || body.password.length === 0) {
     return NextResponse.json(
       { error: "password is required" },
+      { status: 400 },
+    );
+  }
+
+  const pwCheck = validatePasswordInput(body.password);
+  if (!pwCheck.ok) {
+    return NextResponse.json(
+      {
+        error:
+          body.password.length > MAX_PASSWORD_LENGTH
+            ? pwCheck.error
+            : "password is required",
+      },
       { status: 400 },
     );
   }
