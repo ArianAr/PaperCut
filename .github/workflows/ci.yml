@@ -10,6 +10,10 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Least privilege: jobs only need to read the repo (no write tokens).
+permissions:
+  contents: read
+
 env:
   NEXT_TELEMETRY_DISABLED: "1"
   CI: "true"
