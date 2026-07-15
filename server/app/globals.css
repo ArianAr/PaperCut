@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #1e1e1e;
+  --sidebar: #252526;
+  --line: #2d2d2d;
+  --border: #3c3c3c;
+  --fg: #d4d4d4;
+  --muted: #858585;
+  --accent: #007acc;
+  --error: #f44747;
+  --warn: #cca700;
+  --info: #3794ff;
+  --debug: #808080;
+  --success: #89d185;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+}
+
+::selection {
+  background: #264f78;
+  color: #fff;
+}
