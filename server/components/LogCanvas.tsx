@@ -32,6 +32,12 @@ import {
   type HighlightRule,
 } from "@/lib/highlight-rules";
 import {
+  buildTimelineIndex,
+  formatTimelineTime,
+  nearestTimelinePoint,
+  scrubToTimeMs,
+} from "@/lib/timestamps";
+import {
   persistWrapMode,
   resolveInitialWrapMode,
   type WrapMode,
@@ -91,6 +97,8 @@ export function LogCanvas({
   const [draftPattern, setDraftPattern] = useState("");
   const [draftColor, setDraftColor] = useState<HighlightColorId>("accent");
   const [draftError, setDraftError] = useState<string | null>(null);
+  const [scrubRatio, setScrubRatio] = useState(0);
+  const [scrubLabel, setScrubLabel] = useState<string | null>(null);
 
   useEffect(() => {
     setWrapMode(resolveInitialWrapMode());
@@ -191,6 +199,27 @@ export function LogCanvas({
     () => filterLogLines(allLines, levels, query),
     [allLines, levels, query],
   );
+
+  // Timeline from currently visible lines so jumps always land in the list
+  const timeline = useMemo(
+    () => buildTimelineIndex(visibleLines),
+    [visibleLines],
+  );
+
+  function onTimelineScrub(ratio: number) {
+    setScrubRatio(ratio);
+    if (!timeline) {
+      setScrubLabel(null);
+      return;
+    }
+    const t = scrubToTimeMs(timeline, ratio);
+    const point = nearestTimelinePoint(timeline, t);
+    setScrubLabel(
+      `${formatTimelineTime(point.timeMs)} · L${point.lineNumber}`,
+    );
+    setScrollToLine(null);
+    requestAnimationFrame(() => setScrollToLine(point.lineNumber));
+  }
 
   // Restore selection + scroll from URL hash
   useEffect(() => {
@@ -538,6 +567,37 @@ export function LogCanvas({
               {!wrapMounted ? "Wrap" : wrapLabel}
             </button>
           </div>
+          {timeline ? (
+            <div className="flex shrink-0 flex-col gap-1 border-b border-vscode-border bg-vscode-sidebar px-3 py-2">
+              <div className="flex items-center justify-between gap-2 font-mono text-[10px] text-vscode-muted">
+                <span title="Earliest timestamp in visible lines">
+                  {formatTimelineTime(timeline.minMs)}
+                </span>
+                <span className="truncate text-vscode-accent">
+                  {scrubLabel ??
+                    `${timeline.points.length} timestamps · scrub to jump`}
+                </span>
+                <span title="Latest timestamp in visible lines">
+                  {formatTimelineTime(timeline.maxMs)}
+                </span>
+              </div>
+              <label className="sr-only" htmlFor="timeline-scrub">
+                Timeline scrubber
+              </label>
+              <input
+                id="timeline-scrub"
+                type="range"
+                min={0}
+                max={1000}
+                step={1}
+                value={Math.round(scrubRatio * 1000)}
+                onChange={(e) =>
+                  onTimelineScrub(Number.parseInt(e.target.value, 10) / 1000)
+                }
+                className="w-full accent-vscode-accent"
+              />
+            </div>
+          ) : null}
           <div className="min-h-0 flex-1">
             <VirtualLogList
               lines={visibleLines}
