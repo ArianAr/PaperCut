@@ -7,6 +7,7 @@
 #   export PAPERCUT_DOMAIN=paste.example.com
 #   export PAPERCUT_PUBLIC_URL=https://paste.example.com
 #   export PASTE_AUTH_SECRET="$(openssl rand -hex 32)"
+#   export TRUSTED_PROXY_HOPS=1   # required so rate limits use real client IPs
 #   docker compose --profile proxy up --build -d
 #   # Prefer firewall: only 80/443 public; optional PAPERCUT_HOST_PORT= to avoid publishing 3000
 #
@@ -26,7 +27,8 @@ services:
       # Required: no default — weak placeholders are rejected at runtime in production.
       PASTE_AUTH_SECRET: ${PASTE_AUTH_SECRET:?Set PASTE_AUTH_SECRET to a long random value (e.g. openssl rand -hex 32)}
       MAX_PASTE_SIZE: ${MAX_PASTE_SIZE:-10485760}
-      TRUSTED_PROXY_HOPS: ${TRUSTED_PROXY_HOPS:-1}
+      # Default 0: ignore XFF on direct :3000 publish. Set 1 when using profile `proxy`.
+      TRUSTED_PROXY_HOPS: ${TRUSTED_PROXY_HOPS:-0}
       NODE_ENV: production
     volumes:
       - papercut-data:/data

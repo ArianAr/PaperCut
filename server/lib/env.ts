@@ -68,11 +68,12 @@ export function getPasteAuthSecret(): string {
 
 /**
  * How many reverse-proxy hops to trust when reading X-Forwarded-For.
- * Default 1 (single nginx/Caddy/Traefik). Set 0 to ignore XFF entirely.
+ * Default 0 (ignore XFF) so direct deploys cannot have rate limits bypassed
+ * by spoofed X-Forwarded-For. Set to 1 behind a single nginx/Caddy/Traefik.
  */
 export function getTrustedProxyHops(): number {
   const raw = process.env.TRUSTED_PROXY_HOPS;
-  if (raw === undefined || raw.trim() === "") return 1;
+  if (raw === undefined || raw.trim() === "") return 0;
   const n = Number.parseInt(raw, 10);
   if (!Number.isFinite(n) || n < 0) {
     throw new Error(`Invalid TRUSTED_PROXY_HOPS: ${raw}`);

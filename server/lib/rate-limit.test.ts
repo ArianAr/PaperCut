@@ -47,6 +47,34 @@ describe("RateLimiter", () => {
     expect(limiter.attempt("one").allowed).toBe(false);
     expect(limiter.attempt("two").allowed).toBe(true);
   });
+
+  it("prune drops keys with only expired hits", () => {
+    let now = 1_000_000;
+    const limiter = new RateLimiter({
+      limit: 5,
+      windowMs: 1_000,
+      now: () => now,
+    });
+    expect(limiter.attempt("stale").allowed).toBe(true);
+    expect(limiter.size()).toBe(1);
+    now += 5_000;
+    limiter.prune();
+    expect(limiter.size()).toBe(0);
+  });
+
+  it("evicts when maxKeys is exceeded", () => {
+    const limiter = new RateLimiter({
+      limit: 10,
+      windowMs: 60_000,
+      maxKeys: 3,
+    });
+    expect(limiter.attempt("a").allowed).toBe(true);
+    expect(limiter.attempt("b").allowed).toBe(true);
+    expect(limiter.attempt("c").allowed).toBe(true);
+    expect(limiter.size()).toBe(3);
+    expect(limiter.attempt("d").allowed).toBe(true);
+    expect(limiter.size()).toBe(3);
+  });
 });
 
 describe("clientKeyFromRequest", () => {

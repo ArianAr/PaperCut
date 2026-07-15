@@ -75,7 +75,7 @@ PaperCut is designed with developer privacy in mind:
 - **Password-protected pastes** store a password hash only; content is not returned until unlock succeeds
 - **Rate limits** use in-memory counters keyed by client hints (e.g. `X-Forwarded-For`); keys are not written to application logs
 - **Opt-in metrics** (`PAPERCUT_METRICS`) expose process counters only (paste creates, successful unlocks, rate-limit 429s) via `GET /api/metrics`; disabled by default; never includes paste bodies, IPs, or rate-limit keys
-- **Trusted proxy hops** (`TRUSTED_PROXY_HOPS`, default 1) select the client key from `X-Forwarded-For` from the right so a single reverse proxy’s real client address is used; keys stay in memory only
+- **Trusted proxy hops** (`TRUSTED_PROXY_HOPS`, default **0** = ignore XFF) so direct deploys cannot bypass rate limits via spoofed `X-Forwarded-For`. Set to `1` behind a single reverse proxy so the real client address is used; keys stay in memory only
 - **Self-hosting** is the primary deployment model—you control the data plane
 
 Sensitive logs or credentials should always use **private** (password-protected) pastes and short expiry when possible. A public paste ID is effectively a capability URL: anyone with the link can read a non-private paste.

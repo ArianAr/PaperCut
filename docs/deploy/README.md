@@ -42,6 +42,8 @@ PaperCut does **not** terminate TLS itself. Put a reverse proxy in front for HTT
 export PASTE_AUTH_SECRET="$(openssl rand -hex 32)"
 export PAPERCUT_DOMAIN="paste.example.com"
 export PAPERCUT_PUBLIC_URL="https://paste.example.com"
+# Trust one reverse-proxy hop so rate limits use the real client (not "local")
+export TRUSTED_PROXY_HOPS=1
 # Optional: do not publish app port on the host (proxy-only)
 export PAPERCUT_HOST_PORT=""
 docker compose --profile proxy up --build -d
@@ -204,7 +206,7 @@ Configure Traefik entrypoints `web`/`websecure` and a Let's Encrypt certificate 
 | `PASTE_AUTH_SECRET` | Long random secret (required in production) |
 | `DATABASE_PATH` | e.g. `/data/papercut.db` |
 | `PAPERCUT_METRICS` | Optional: `1` to enable `GET /api/metrics` (counters only; off by default) |
-| `TRUSTED_PROXY_HOPS` | Usually `1` behind a single reverse proxy (default). Use `0` only if you do not forward XFF. |
+| `TRUSTED_PROXY_HOPS` | Set to `1` behind a single reverse proxy. Default is `0` (ignore XFF) for safe direct deploys. |
 | `COOKIE_SECURE` | Optional override; with `PAPERCUT_PUBLIC_URL=https://…` unlock cookies are Secure automatically |
 | Proxy headers | `X-Forwarded-For`, `X-Forwarded-Proto` |
 
