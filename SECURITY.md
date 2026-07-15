@@ -2,11 +2,21 @@
 
 ## Supported versions
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 0.x     | :white_check_mark: |
+Security fixes are provided for the versions below. Always run the latest patch of a supported minor line when possible.
 
-Until a stable 1.0 release, security fixes are applied on the latest `main` branch only.
+| Version | Supported          | Notes |
+| ------- | ------------------ | ----- |
+| 0.2.x   | :white_check_mark: | Current release line ([CHANGELOG](./CHANGELOG.md)) |
+| 0.1.x   | :x:                | Superseded by 0.2.x; no further fixes |
+| &lt; 0.1  | :x:                | Pre-release / untagged |
+
+Until a stable **1.0** release:
+
+- Fixes land on `main` first, then ship in the next **semver** tag.
+- Only the latest **0.x** minor line is supported (currently **0.2.x**).
+- Upgrade by pulling the latest release tag or `main` and redeploying (Docker or Node).
+
+When reporting an issue, include the version from `package.json` / the Git tag (e.g. `v0.2.0`).
 
 ## Reporting a vulnerability
 
@@ -22,7 +32,8 @@ Report privately using one of these channels:
 
 - Description of the issue and impact
 - Steps to reproduce (PoC)
-- Affected version / commit if known
+- **Affected version / Git tag** (e.g. `v0.2.0`) and commit if known
+- Deployment mode (Docker / `pnpm start` / other)
 - Any suggested fix (optional)
 
 ### What to expect
@@ -30,6 +41,7 @@ Report privately using one of these channels:
 - **Acknowledgement** within 7 days
 - **Status update** within 14 days (accepted, needs more info, or declined)
 - Coordinated disclosure: we ask that you give us reasonable time to ship a fix before public disclosure (typically 90 days, shorter if actively exploited)
+- Fixed versions are recorded in [CHANGELOG.md](./CHANGELOG.md) under a **Security** section when applicable, and noted in the GitHub Release
 
 We will credit reporters who wish to be named in release notes, unless you prefer to remain anonymous.
 

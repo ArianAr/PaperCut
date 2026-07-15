@@ -118,13 +118,15 @@ See [`.env.example`](./.env.example).
 
 ## Documentation
 
-- [Contributing](./CONTRIBUTING.md) — setup, PR process, testing
-- [Security policy](./SECURITY.md) — vulnerability reporting
+- [Changelog](./CHANGELOG.md) — release history (Keep a Changelog)
+- [Contributing](./CONTRIBUTING.md) — setup, PR process, testing, **release checklist**
+- [Security policy](./SECURITY.md) — supported versions and vulnerability reporting
 - [License](./LICENSE) — GPL-3.0-only
+- [Releases](https://github.com/ArianAr/PaperCut/releases) — Git tags (`vX.Y.Z`)
 
 ## Status
 
-PaperCut is under active development. APIs and UI may change before 1.0.
+Current version: **0.2.0** (see [CHANGELOG](./CHANGELOG.md)). APIs and UI may change before 1.0.
 
 ## License
 
