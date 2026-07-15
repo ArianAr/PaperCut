@@ -1,6 +1,6 @@
 # PaperCut Roadmap
 
-Living plan for post-**1.0** work. Status: **1.1.0 shipped** (stable self-hosted pastebin + log canvas).
+Living plan for post-**1.0** work. Status: **1.2.0 shipped** (canvas power tools + security hardening; scale features from the v1.3 track also on `main`).
 
 Priorities may shift based on users and security needs. Items become GitHub issues when work starts; this file is the high-level map.
 
@@ -70,7 +70,7 @@ Focus: production operators and contributors.
 
 ---
 
-## Later — v1.2 “Canvas power tools”
+## Shipped — v1.2 “Canvas power tools” (in **1.2.0**)
 
 Focus: log analysis depth.
 

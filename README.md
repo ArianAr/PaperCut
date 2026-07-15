@@ -7,12 +7,14 @@
 
 <p align="center">
   <a href="https://github.com/ArianAr/PaperCut/actions/workflows/ci.yml"><img src="https://github.com/ArianAr/PaperCut/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <a href="https://github.com/ArianAr/PaperCut/releases/tag/v1.2.0"><img src="https://img.shields.io/badge/version-v1.2.0-blue.svg" alt="Version v1.2.0" /></a>
   <a href="https://github.com/ArianAr/PaperCut/releases/latest"><img src="https://img.shields.io/github/v/release/ArianAr/PaperCut?label=release" alt="Release" /></a>
+  <a href="https://www.npmjs.com/package/papercut-cli"><img src="https://img.shields.io/npm/v/papercut-cli.svg?logo=npm&label=papercut-cli" alt="npm papercut-cli" /></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue.svg" alt="License" /></a>
   <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg" alt="Node.js" /></a>
   <a href="./Dockerfile"><img src="https://img.shields.io/badge/docker-ready-2496ED?logo=docker&logoColor=white" alt="Docker" /></a>
   <a href="./SECURITY.md"><img src="https://img.shields.io/badge/security-policy-red.svg" alt="Security" /></a>
-  <a href="./ROADMAP.md"><img src="https://img.shields.io/badge/roadmap-v1.1+-informational.svg" alt="Roadmap" /></a>
+  <a href="./ROADMAP.md"><img src="https://img.shields.io/badge/roadmap-v1.2+-informational.svg" alt="Roadmap" /></a>
 </p>
 
 ```bash
@@ -196,7 +198,7 @@ UI: `/paste/:id` · deep links `#L12`, `#L12-L20`.
 
 ## Status
 
-**Current version: [1.1.0](https://github.com/ArianAr/PaperCut/releases/tag/v1.1.0)** · [1.x API compatibility](./CHANGELOG.md) · roadmap: [ROADMAP.md](./ROADMAP.md)
+**Current version: [1.2.0](https://github.com/ArianAr/PaperCut/releases/tag/v1.2.0)** · CLI on [npm](https://www.npmjs.com/package/papercut-cli) · [1.x API compatibility](./CHANGELOG.md) · roadmap: [ROADMAP.md](./ROADMAP.md)
 
 ## Disclaimer
 
