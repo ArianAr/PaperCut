@@ -33,5 +33,10 @@ export function resolveInitialTheme(): Theme {
   return readStoredTheme() ?? "dark";
 }
 
-/** Inline script: set data-theme before paint (no FOUC). */
-export const THEME_BOOT_SCRIPT = `(function(){try{var k=${JSON.stringify(THEME_STORAGE_KEY)};var t=localStorage.getItem(k);if(t!=="light"&&t!=="dark")t="dark";document.documentElement.setAttribute("data-theme",t);}catch(e){document.documentElement.setAttribute("data-theme","dark");}})();`;
+/**
+ * Inline script: set data-theme before paint (no FOUC).
+ * Fully static string (no interpolation) so CodeQL js/bad-code-sanitization stays clean.
+ * The localStorage key literal must stay equal to THEME_STORAGE_KEY.
+ */
+export const THEME_BOOT_SCRIPT =
+  '(function(){try{var t=localStorage.getItem("papercut-theme");if(t!=="light"&&t!=="dark")t="dark";document.documentElement.setAttribute("data-theme",t);}catch(e){document.documentElement.setAttribute("data-theme","dark");}})();';

@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Opt-in process metrics (`PAPERCUT_METRICS=1`) — `GET /api/metrics` counters only (`pastes_created`, `unlocks_ok`, `rate_limited`); disabled by default; no content/IP logging
 - Log canvas **wrap / no-wrap** toggle (dense horizontal scroll), sticky line-number gutter, preference in `localStorage`
 
+### Fixed
+
+- Theme FOUC boot script is a static string (no `JSON.stringify` interpolation) to clear CodeQL `js/bad-code-sanitization`
+
 ### Planned
 
 See [ROADMAP.md](./ROADMAP.md) (dependency updates, canvas tools, scale features, etc.).
