@@ -1,10 +1,18 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getMaxPasteSize, getPasteAuthSecret, getPublicUrl } from "./env";
+import {
+  getCookieSecure,
+  getMaxPasteSize,
+  getPasteAuthSecret,
+  getPublicUrl,
+  getTrustedProxyHops,
+} from "./env";
 
 const keys = [
   "MAX_PASTE_SIZE",
   "PASTE_AUTH_SECRET",
   "PAPERCUT_PUBLIC_URL",
+  "TRUSTED_PROXY_HOPS",
+  "COOKIE_SECURE",
 ] as const;
 
 const snapshot: Partial<Record<(typeof keys)[number], string | undefined>> = {};
@@ -53,5 +61,32 @@ describe("env helpers", () => {
 
     vi.stubEnv("PASTE_AUTH_SECRET", "prod-secret");
     expect(getPasteAuthSecret()).toBe("prod-secret");
+  });
+
+  it("defaults trusted proxy hops to 1", () => {
+    remember();
+    delete process.env.TRUSTED_PROXY_HOPS;
+    expect(getTrustedProxyHops()).toBe(1);
+    process.env.TRUSTED_PROXY_HOPS = "2";
+    expect(getTrustedProxyHops()).toBe(2);
+    process.env.TRUSTED_PROXY_HOPS = "0";
+    expect(getTrustedProxyHops()).toBe(0);
+  });
+
+  it("derives cookie Secure from URL or override", () => {
+    remember();
+    delete process.env.COOKIE_SECURE;
+    delete process.env.PAPERCUT_PUBLIC_URL;
+    vi.stubEnv("NODE_ENV", "development");
+    expect(getCookieSecure()).toBe(false);
+
+    process.env.PAPERCUT_PUBLIC_URL = "https://paste.example";
+    expect(getCookieSecure()).toBe(true);
+
+    process.env.PAPERCUT_PUBLIC_URL = "http://localhost:3000";
+    expect(getCookieSecure()).toBe(false);
+
+    process.env.COOKIE_SECURE = "1";
+    expect(getCookieSecure()).toBe(true);
   });
 });

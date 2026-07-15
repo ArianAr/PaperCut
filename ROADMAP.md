@@ -97,7 +97,7 @@ Focus: multi-instance self-host without losing privacy defaults.
 | 1.3.4 | **Background expire sweeper** (cron process) | server | Complement purge-on-read |
 | 1.3.5 | **Read replicas / RO mode** | server | Optional |
 | 1.3.6 | **Optional reverse-proxy stack** (compose profiles) | docker | nginx / Caddy / Traefik + ACME for domain + HTTPS; app still plain HTTP behind proxy |
-| 1.3.7 | **Proxy-aware runtime** | server | Document/trust hop config for rate limits & secure cookies behind TLS terminators |
+| 1.3.7 | **Proxy-aware runtime** | server | ✅ Done (`TRUSTED_PROXY_HOPS`, `COOKIE_SECURE` / public URL) |
 
 ### Reverse proxy & HTTPS (intent)
 
