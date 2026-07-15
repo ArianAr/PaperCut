@@ -1,17 +1,85 @@
+# PaperCut Docker Compose
+#
+# Default (app only, host :3000):
+#   docker compose up --build -d
+#
+# Behind Caddy with automatic HTTPS (profile `proxy`):
+#   export PAPERCUT_DOMAIN=paste.example.com
+#   export PAPERCUT_PUBLIC_URL=https://paste.example.com
+#   export PASTE_AUTH_SECRET="$(openssl rand -hex 32)"
+#   docker compose --profile proxy up --build -d
+#   # Prefer firewall: only 80/443 public; optional PAPERCUT_HOST_PORT= to avoid publishing 3000
+#
+# Optional expire sweeper (hits /api/health every 5m — purges expired pastes):
+#   docker compose --profile sweeper up -d
+
 services:
   papercut:
     build: .
+    # Publish to host only when PAPERCUT_HOST_PORT is set (default 3000 for direct access).
+    # For proxy-only deploys: PAPERCUT_HOST_PORT= docker compose --profile proxy up -d
     ports:
-      - "3000:3000"
+      - "${PAPERCUT_HOST_PORT:-3000}:3000"
     environment:
       PAPERCUT_PUBLIC_URL: ${PAPERCUT_PUBLIC_URL:-http://localhost:3000}
       DATABASE_PATH: /data/papercut.db
       PASTE_AUTH_SECRET: ${PASTE_AUTH_SECRET:-change-me-in-production-use-a-long-random-string}
       MAX_PASTE_SIZE: ${MAX_PASTE_SIZE:-10485760}
+      TRUSTED_PROXY_HOPS: ${TRUSTED_PROXY_HOPS:-1}
       NODE_ENV: production
     volumes:
       - papercut-data:/data
     restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  caddy:
+    profiles: ["proxy"]
+    image: caddy:2.9-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      PAPERCUT_DOMAIN: ${PAPERCUT_DOMAIN:-localhost}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      papercut:
+        condition: service_started
+    restart: unless-stopped
+
+  # Optional: call health periodically so expired pastes are purged without traffic.
+  sweeper:
+    profiles: ["sweeper"]
+    image: curlimages/curl:8.12.1
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        while true; do
+          curl -sf "http://papercut:3000/api/health" >/dev/null || true
+          sleep "$${SWEEP_INTERVAL_SEC:-300}"
+        done
+    environment:
+      SWEEP_INTERVAL_SEC: ${SWEEP_INTERVAL_SEC:-300}
+    depends_on:
+      - papercut
+    restart: unless-stopped
 
 volumes:
   papercut-data:
+  caddy-data:
+  caddy-config:
