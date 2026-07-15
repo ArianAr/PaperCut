@@ -37,6 +37,9 @@ importers:
         specifier: ^19.0.0
         version: 19.2.7(react@19.2.7)
     devDependencies:
+      '@eslint/eslintrc':
+        specifier: ^3.3.6
+        version: 3.3.6
       '@types/better-sqlite3':
         specifier: ^7.6.13
         version: 7.6.13
