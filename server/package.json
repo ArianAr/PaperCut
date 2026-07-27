@@ -20,14 +20,14 @@
     "node": ">=20"
   },
   "dependencies": {
-    "@tanstack/react-virtual": "^3.14.6",
+    "@tanstack/react-virtual": "^3.14.8",
     "ansi_up": "^6.0.6",
     "better-sqlite3": "^12.11.1",
     "drizzle-orm": "^0.45.2",
     "nanoid": "^6.0.0",
-    "next": "^15.2.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "next": "^15.5.22",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "redis": "^6.1.0"
   },
   "devDependencies": {
